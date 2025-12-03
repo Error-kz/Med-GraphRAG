@@ -1,0 +1,43 @@
+# MedGraphRAG 项目依赖包
+python==3.11.4
+
+# Web框架
+fastapi==0.115.11
+uvicorn==0.34.0
+starlette==0.46.1
+
+# Pydantic (FastAPI依赖)
+pydantic==2.10.6
+pydantic-settings==2.11.0
+pydantic_core==2.27.2
+
+# LangChain相关
+langchain==0.3.27
+langchain-core==0.3.79
+langchain-milvus==0.2.1
+langchain-community==0.3.31
+langchain-text-splitters==0.3.11
+
+# 向量数据库
+pymilvus==2.6.2
+milvus-lite==2.5.1
+
+# 图数据库
+neo4j-driver==5.28.1
+
+# LLM和Embedding
+openai==2.3.0
+zai-sdk==0.0.4
+
+# 缓存
+redis==6.4.0
+
+# 数据处理
+pandas==2.2.3
+numpy>=1.26.0
+
+
+# 工具库
+tqdm==4.67.1
+requests==2.32.5
+python-dotenv==1.1.1

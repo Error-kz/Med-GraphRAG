@@ -1,24 +1,42 @@
 """
 主配置文件
-统一管理所有配置项，支持环境变量
+统一管理所有配置项，支持从 .env 文件或环境变量加载
 """
 import os
 from pathlib import Path
 from typing import Optional
+from dotenv import load_dotenv
 
 # 项目根目录
 PROJECT_ROOT = Path(__file__).parent.parent
 
+# .env 文件路径
+ENV_FILE = PROJECT_ROOT / ".env"
+
+# 加载 .env 文件（如果存在）
+# override=True 表示环境变量优先于 .env 文件中的值
+# 这样可以支持在运行时通过环境变量覆盖配置
+if ENV_FILE.exists():
+    load_dotenv(ENV_FILE, override=False)
+    print(f"✅ 已加载配置文件: {ENV_FILE}")
+else:
+    print(f"⚠️  未找到 .env 文件: {ENV_FILE}，将使用环境变量或默认值")
+
 
 class Settings:
-    """应用配置类"""
+    """
+    应用配置类
+    所有配置优先从 .env 文件加载，如果 .env 中不存在则从系统环境变量读取
+    如果都不存在，则使用默认值（如果有）
+    """
     
     # ========== API Keys ==========
-    DEEPSEEK_API_KEY: str = os.getenv("DEEPSEEK_API_KEY")
-    ZHIPU_API_KEY: str = os.getenv("ZHIPU_API_KEY")
+    # 从 .env 文件或环境变量加载，如果不存在则为 None
+    DEEPSEEK_API_KEY: Optional[str] = os.getenv("DEEPSEEK_API_KEY")
+    ZHIPU_API_KEY: Optional[str] = os.getenv("ZHIPU_API_KEY")
     
     # ========== Neo4j配置 ==========
-    NEO4J_URI: str = os.getenv("NEO4J_URI", "neo4j://0.0.0.0:7687")
+    NEO4J_URI: str = os.getenv("NEO4J_URI")
     NEO4J_USER: str = os.getenv("NEO4J_USER")
     NEO4J_PASSWORD: str = os.getenv("NEO4J_PASSWORD")
     NEO4J_ENCRYPTED: bool = os.getenv("NEO4J_ENCRYPTED", "False").lower() == "true"
@@ -58,8 +76,18 @@ class Settings:
 # 创建全局配置实例
 settings = Settings()
 
-# 设置环境变量
+# 设置环境变量（供其他库使用）
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+# 验证必要的 API Key 是否已配置
+if not settings.ZHIPU_API_KEY:
+    print("⚠️  警告: ZHIPU_API_KEY 未配置，Embedding 功能可能无法使用")
+if not settings.DEEPSEEK_API_KEY:
+    print("⚠️  警告: DEEPSEEK_API_KEY 未配置，LLM 功能可能无法使用")
+
+# 如果配置了 API Key，设置到环境变量中（供其他库使用）
 if settings.DEEPSEEK_API_KEY:
     os.environ["DEEPSEEK_API_KEY"] = settings.DEEPSEEK_API_KEY
+if settings.ZHIPU_API_KEY:
+    os.environ["ZHIPU_API_KEY"] = settings.ZHIPU_API_KEY
 

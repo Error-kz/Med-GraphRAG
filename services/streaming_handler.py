@@ -8,6 +8,8 @@ import datetime
 import requests
 from typing import AsyncGenerator
 
+from core.cache.redis_client import get_redis_client, save_conversation_history, save_session_to_history
+
 
 async def send_event(event_type: str, data: dict) -> str:
     """
@@ -26,6 +28,7 @@ async def send_event(event_type: str, data: dict) -> str:
 
 async def chatbot_stream(
     query: str,
+    session_id: str,
     milvus_vectorstore,
     client_llm,
     graph_api_url: str,
@@ -38,6 +41,7 @@ async def chatbot_stream(
     
     Args:
         query: 用户问题
+        session_id: 会话ID
         milvus_vectorstore: Milvus向量存储实例
         client_llm: DeepSeek LLM客户端
         graph_api_url: 知识图谱服务主地址
@@ -47,6 +51,11 @@ async def chatbot_stream(
     Yields:
         SSE格式的事件字符串
     """
+    # 发送会话ID事件（前端需要保存）
+    yield await send_event('session_id', {
+        'session_id': session_id
+    })
+    
     # 初始化搜索路径和结果追踪
     search_path = []
     search_stages = {
@@ -414,6 +423,24 @@ async def chatbot_stream(
         full_response = re.sub(r'\n{3,}', '\n\n', full_response)
         full_response = full_response.strip()
         
+        # 保存对话历史到Redis
+        new_session_id = None
+        try:
+            redis_client = get_redis_client()
+            new_session_id, should_create_new = save_conversation_history(redis_client, session_id, query, full_response)
+            
+            # 如果达到10条，需要创建新会话
+            if should_create_new and new_session_id:
+                print(f"对话达到10条，自动创建新会话: {new_session_id}")
+                # 发送新会话创建事件
+                yield await send_event('new_session_created', {
+                    'new_session_id': new_session_id,
+                    'old_session_id': session_id,
+                    'message': '对话达到10条，已自动创建新会话'
+                })
+        except Exception as e:
+            print(f"保存对话历史失败: {str(e)}")
+        
         # 发送最终结果
         now = datetime.datetime.now()
         time = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -421,6 +448,9 @@ async def chatbot_stream(
             'response': full_response,
             'status': 200,
             'time': time,
+            'session_id': session_id,  # 当前回答仍属于旧会话
+            'new_session_id': new_session_id if new_session_id else None,  # 如果创建了新会话，返回新的session_id供下次使用
+            'new_session_created': new_session_id is not None,  # 标识是否创建了新会话
             'search_path': search_path,
             'search_stages': search_stages
         })

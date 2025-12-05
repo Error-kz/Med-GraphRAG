@@ -7,6 +7,7 @@ import os
 import re
 import json
 import datetime
+import uuid
 import requests
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,6 +20,7 @@ from config.settings import settings
 from config.neo4j_config import NEO4J_CONFIG
 from core.models.embeddings import ZhipuAIEmbeddings
 from core.models.llm import create_deepseek_client, generate_deepseek_answer
+from core.cache.redis_client import get_redis_client, save_conversation_history, save_session_to_history, get_conversation_history_list, get_session_conversations
 from zai import ZhipuAiClient
 from neo4j import GraphDatabase
 
@@ -27,6 +29,10 @@ from .streaming_handler import chatbot_stream
 
 # 设置环境变量
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+# 抑制 gRPC 和 absl 的警告信息（来自 Milvus 客户端）
+os.environ["GRPC_VERBOSITY"] = "ERROR"  # 只显示错误级别的 gRPC 日志
+os.environ["GLOG_minloglevel"] = "2"  # 抑制 INFO 级别的日志（0=INFO, 1=WARNING, 2=ERROR）
 
 # 创建FastAPI应用
 app = FastAPI()
@@ -119,6 +125,32 @@ def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
 
+def generate_session_id() -> str:
+    """
+    生成唯一的会话ID
+    
+    Returns:
+        会话ID字符串（UUID格式）
+    """
+    return str(uuid.uuid4())
+
+
+def get_or_create_session_id(json_post_list: dict) -> str:
+    """
+    从请求中获取session_id，如果不存在则生成新的
+    
+    Args:
+        json_post_list: 请求的JSON数据字典
+        
+    Returns:
+        session_id字符串
+    """
+    session_id = json_post_list.get('session_id')
+    if not session_id:
+        session_id = generate_session_id()
+    return session_id
+
+
 @app.get("/")
 async def root():
     """根路径，返回前端页面或服务信息"""
@@ -146,10 +178,96 @@ async def api_info():
         "endpoints": {
             "GET /": "前端页面",
             "POST /": "医学问答接口，需要传递 {'question': '你的问题'}",
-            "GET /api/info": "API信息"
+            "GET /api/info": "API信息",
+            "POST /api/new_session": "创建新会话",
+            "GET /api/sessions": "获取历史会话列表"
         },
         "port": settings.AGENT_SERVICE_PORT
     }
+
+
+@app.post("/api/new_session")
+async def create_new_session(request: Request):
+    """
+    创建新会话接口
+    当用户点击"创建新聊天"时调用
+    """
+    json_post_raw = await request.json()
+    json_post = json.dumps(json_post_raw)
+    json_post_list = json.loads(json_post)
+    
+    old_session_id = json_post_list.get('old_session_id')
+    
+    # 如果提供了旧会话ID，将其保存到历史记录
+    if old_session_id:
+        try:
+            redis_client = get_redis_client()
+            save_session_to_history(redis_client, old_session_id)
+        except Exception as e:
+            print(f"保存旧会话到历史记录失败: {str(e)}")
+    
+    # 生成新的session_id
+    new_session_id = generate_session_id()
+    
+    return {
+        'status': 200,
+        'session_id': new_session_id,
+        'message': '新会话创建成功'
+    }
+
+
+@app.get("/api/sessions")
+async def get_sessions():
+    """
+    获取历史会话列表接口
+    返回所有历史会话，用于在右侧历史记录中显示
+    """
+    try:
+        redis_client = get_redis_client()
+        sessions = get_conversation_history_list(redis_client)
+        
+        return {
+            'status': 200,
+            'sessions': sessions,
+            'count': len(sessions)
+        }
+    except Exception as e:
+        print(f"获取历史会话列表失败: {str(e)}")
+        return {
+            'status': 500,
+            'sessions': [],
+            'count': 0,
+            'error': str(e)
+        }
+
+
+@app.get("/api/sessions/{session_id}")
+async def get_session_detail(session_id: str):
+    """
+    获取指定会话的详细对话记录
+    
+    Args:
+        session_id: 会话ID
+    """
+    try:
+        redis_client = get_redis_client()
+        conversations = get_session_conversations(redis_client, session_id)
+        
+        return {
+            'status': 200,
+            'session_id': session_id,
+            'conversations': conversations,
+            'count': len(conversations)
+        }
+    except Exception as e:
+        print(f"获取会话详情失败: {str(e)}")
+        return {
+            'status': 500,
+            'session_id': session_id,
+            'conversations': [],
+            'count': 0,
+            'error': str(e)
+        }
 
 @app.post("/")
 async def chatbot(request: Request):
@@ -162,6 +280,28 @@ async def chatbot(request: Request):
     json_post_list = json.loads(json_post)
     query = json_post_list.get('question')
     
+    # 获取或生成会话ID
+    session_id = get_or_create_session_id(json_post_list)
+    
+    # 检查是否是创建新会话的请求（不包含问题，只是创建新会话）
+    create_new = json_post_list.get('create_new', False)
+    if create_new:
+        # 如果当前会话有内容，先保存到历史记录
+        old_session_id = json_post_list.get('old_session_id', session_id)
+        if old_session_id:
+            try:
+                redis_client = get_redis_client()
+                save_session_to_history(redis_client, old_session_id)
+            except Exception as e:
+                print(f"保存旧会话到历史记录失败: {str(e)}")
+        # 生成新的session_id
+        new_session_id = generate_session_id()
+        return {
+            'status': 200,
+            'session_id': new_session_id,
+            'message': '新会话创建成功'
+        }
+    
     # 检查是否请求流式输出
     use_stream = json_post_list.get('stream', False)
     
@@ -170,6 +310,7 @@ async def chatbot(request: Request):
         return StreamingResponse(
             chatbot_stream(
                 query=query,
+                session_id=session_id,
                 milvus_vectorstore=milvus_vectorstore,
                 client_llm=client_llm,
                 graph_api_url=GRAPH_API_URL,
@@ -440,12 +581,26 @@ async def chatbot(request: Request):
     # 使用 DeepSeek 模型生成回复
     response = generate_deepseek_answer(client_llm, SYSTEM_PROMPT + USER_PROMPT)
 
+    # 保存对话历史到Redis
+    new_session_id = None
+    try:
+        redis_client = get_redis_client()
+        new_session_id, should_create_new = save_conversation_history(redis_client, session_id, query, response)
+        
+        # 如果达到10条，需要创建新会话
+        if should_create_new and new_session_id:
+            print(f"对话达到10条，自动创建新会话: {new_session_id}")
+    except Exception as e:
+        print(f"保存对话历史失败: {str(e)}")
+
     now = datetime.datetime.now()
     time = now.strftime("%Y-%m-%d %H:%M:%S")
     answer = {
         'response': response,
         'status': 200,
         'time': time,
+        'session_id': new_session_id if new_session_id else session_id,  # 如果创建了新会话，返回新的session_id
+        'new_session_created': new_session_id is not None,  # 标识是否创建了新会话
         'search_path': search_path,
         'search_stages': search_stages
     }

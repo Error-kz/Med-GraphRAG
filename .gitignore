@@ -58,10 +58,16 @@ ehthumbs.db
 Thumbs.db
 
 # 日志文件
+# 忽略所有 .log 文件（递归）
 *.log
+**/*.log
 logs/
-storage/logs/*.log
+**/logs/
+storage/logs/
+storage/logs/**/*.log
+# 保留 .gitkeep 文件
 !storage/logs/.gitkeep
+!**/.gitkeep
 
 # 数据库文件（不提交数据库文件）
 storage/databases/*.db

@@ -1,9 +1,19 @@
 # Python
+# 忽略所有 Python 编译文件
 __pycache__/
 *.py[cod]
+*.pyc
+*.pyo
+*.pyd
 *$py.class
 *.so
 .Python
+
+# 忽略所有 __pycache__ 目录（递归）
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
 build/
 develop-eggs/
 dist/

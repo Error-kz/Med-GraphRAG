@@ -4991,3 +4991,2802 @@ RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
 2025-12-03 16:12:05,860 - services.graph_service - INFO - 查询执行成功，耗时: 0.049秒，返回 0 条记录
 2025-12-03 16:12:05,860 - services.graph_service - INFO - 查询执行完成，返回 0 条记录
 2025-12-03 16:36:29,030 - services.graph_service - INFO - Neo4j 连接已关闭
+2025-12-05 10:51:57,409 - services.graph_service - INFO - 成功连接到 Neo4j: neo4j://0.0.0.0:7687
+2025-12-05 10:52:41,671 - services.graph_service - INFO - 收到生成查询请求: 高血压患者饮食要注意什么？
+2025-12-05 10:52:42,194 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 10:52:45,192 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 10:52:45,229 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 10:53:01,146 - services.graph_service - INFO - 查询解释: 这个Cypher查询用于在Neo4j图数据库中查找与"高血压"相关的食物信息。让我详细解释一下：
+
+## 查询目的
+查找所有与"高血压"疾病相关的食物，并显示它们之间的关系类型和食物名称。
+
+## 各部分解释：
+
+1. **`MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food)`**
+   - 匹配模式：查找疾病节点和食物节点之间的连接
+   - `(d:Disease)`：标签为"Disease"的节点，别名为`d`
+   - `(f:Food)`：标签为"Food"的节点，别名为`f`
+   - `[r:not_eat|do_eat|recommand_eat]`：三种可能的关系类型：
+     - `not_eat`：不能吃的食物
+     - `do_eat`：可以吃的食物  
+     - `recommand_eat`：推荐吃的食物
+   - `-`：表示无方向的关系（可以是从疾病到食物，也可以是从食物到疾病）
+
+2. **`WHERE d.name='高血压'`**
+   - 筛选条件：只选择名称为"高血压"的疾病节点
+
+3. **`RETURN type(r) AS relationship_type, f.name AS food_name`**
+   - 返回结果：
+     - `type(r)`：关系的类型（not_eat/do_eat/recommand_eat）
+     - `f.name`：食物的名称
+     - 使用`AS`给结果列起别名，使输出更易读
+
+## 查询结果示例：
+```
+relationship_type | food_name
+-----------------|-----------
+not_eat          | 咸菜
+do_eat           | 苹果
+recommand_eat    | 芹菜
+```
+
+## 简单来说：
+这个查询相当于问："高血压患者有哪些食物需要注意？哪些不能吃？哪些可以吃？哪些推荐吃？"
+2025-12-05 10:53:01,149 - services.graph_service - INFO - 查询验证通过
+2025-12-05 10:53:01,166 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 10:53:01,166 - services.graph_service - INFO - 查询验证通过
+2025-12-05 10:53:01,174 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 10:53:01,175 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 10:53:01,255 - services.graph_service - INFO - 查询执行成功，耗时: 0.079秒，返回 22 条记录
+2025-12-05 10:53:01,256 - services.graph_service - INFO - 查询执行完成，返回 22 条记录
+2025-12-05 10:58:19,940 - services.graph_service - INFO - 收到生成查询请求: 感冒了有什么症状？吃什么药？治疗费用是多少？
+2025-12-05 10:58:20,036 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 10:58:24,788 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease {name: '感冒'})
+OPTIONAL MATCH (d)-[:has_symptom]->(s:Symptom)
+OPTIONAL MATCH (d)-[:recommand_drug|command_drug]->(drug:Drug)
+RETURN 
+  d.name AS disease_name,
+  d.cost_money AS treatment_cost,
+  COLLECT(DISTINCT s.name) AS symptoms,
+  COLLECT(DISTINCT drug.name) AS recommended_drugs
+2025-12-05 10:58:24,845 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 10:58:43,786 - services.graph_service - INFO - 查询解释: 这个Cypher查询是用来从Neo4j图数据库中查找关于"感冒"这种疾病的相关信息。让我一步步解释：
+
+## 查询目的
+查找"感冒"这种疾病的详细信息，包括治疗费用、症状和推荐药物。
+
+## 查询分解
+
+### 1. **MATCH (d:Disease {name: '感冒'})**
+- 找到标签为`Disease`的节点
+- 该节点的`name`属性值为"感冒"
+- 将这个节点赋值给变量`d`
+
+### 2. **OPTIONAL MATCH (d)-[:has_symptom]->(s:Symptom)**
+- 从疾病节点`d`出发，沿着`has_symptom`关系
+- 找到所有相关的症状节点（标签为`Symptom`）
+- 使用`OPTIONAL`表示：即使没有相关症状，查询也不会失败
+- 症状节点赋值给变量`s`
+
+### 3. **OPTIONAL MATCH (d)-[:recommand_drug|command_drug]->(drug:Drug)**
+- 从疾病节点`d`出发，沿着两种关系之一：
+  - `recommand_drug`（可能是拼写错误，应为recommend_drug）
+  - `command_drug`
+- 找到所有相关的药物节点（标签为`Drug`）
+- 同样使用`OPTIONAL`，即使没有相关药物也不会失败
+- 药物节点赋值给变量`drug`
+
+### 4. **RETURN 部分**
+返回以下信息：
+- `disease_name`: 疾病名称（"感冒"）
+- `treatment_cost`: 治疗费用（来自`d.cost_money`属性）
+- `symptoms`: 所有症状名称的列表（去重）
+- `recommended_drugs`: 所有推荐药物名称的列表（去重）
+
+## 查询结果
+会返回一行数据，包含：
+- 疾病名称
+- 治疗费用
+- 该疾病的所有症状（数组形式）
+- 该疾病的所有推荐药物（数组形式）
+
+## 注意点
+- 使用了两个`OPTIONAL MATCH`，这意味着即使没有症状或药物信息，查询也会成功执行
+- `COLLECT(DISTINCT ...)`确保结果中没有重复项
+- 关系名称`command_drug`可能是`recommend_drug`的拼写错误
+
+这个查询适合用于医疗知识图谱中查找特定疾病的完整信息。
+2025-12-05 10:58:43,787 - services.graph_service - INFO - 查询验证通过
+2025-12-05 10:58:43,797 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease {name: '感冒'})
+OPTIONAL MATCH (d)-[:has_symptom]->(s:Symptom)
+OPTIONAL MATCH (d)-[:recommand_drug|command_drug]->(drug:Drug)
+RETURN 
+  d.name AS disease_name,
+  d.cost_money AS treatment_cost,
+  COLLECT(DISTINCT s.name) AS symptoms,
+  COLLECT(DISTINCT drug.name) AS recommended_drugs
+2025-12-05 10:58:43,798 - services.graph_service - INFO - 查询验证通过
+2025-12-05 10:58:43,803 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease {name: '感冒'})
+OPTIONAL MATCH (d)-[:has_symptom]->(s:Symptom)
+OPTIONAL MATCH (d)-[:recommand_drug|command_drug]->(drug:Drug)
+RETURN 
+  d.name AS disease_name,
+  d.cost_money AS treatment_cost,
+  COLLECT(DISTINCT s.name) AS symptoms,
+  COLLECT(DISTINCT drug.name) AS recommended_drugs
+2025-12-05 10:58:43,803 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease {name: '感冒'})
+OPTIONAL MATCH (d)-[:has_symptom]->(s:Symptom)
+OPTIONAL MATCH (d)-[:recommand_drug|command_drug]->(drug:Drug)
+RETURN 
+  d.name AS disease_name,
+  d.cost_money AS treatment_cost,
+  COLLECT(DISTINCT s.name) AS symptoms,
+  COLLECT(DISTINCT drug.name) AS recommended_drugs
+2025-12-05 10:58:43,822 - services.graph_service - INFO - 查询执行成功，耗时: 0.019秒，返回 1 条记录
+2025-12-05 10:58:43,824 - services.graph_service - INFO - 查询执行完成，返回 1 条记录
+2025-12-05 11:25:34,866 - services.graph_service - INFO - Neo4j 连接已关闭
+2025-12-05 11:25:37,465 - services.graph_service - INFO - 成功连接到 Neo4j: neo4j://0.0.0.0:7687
+2025-12-05 11:25:54,162 - services.graph_service - INFO - 收到生成查询请求: 高血压患者饮食要注意什么？
+2025-12-05 11:25:54,458 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 11:25:57,487 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 11:25:57,530 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 11:26:12,649 - services.graph_service - INFO - 查询解释: 这个Cypher查询是用来在Neo4j图数据库中查找与"高血压"相关的食物信息的。让我一步步解释：
+
+## 查询目的
+查找所有与"高血压"疾病相关的食物，并显示它们之间的关系类型和食物名称。
+
+## 查询分解
+
+1. **`MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food)`**
+   - 匹配模式：查找疾病节点和食物节点之间的连接
+   - `(d:Disease)`：标签为"Disease"的节点，别名为d
+   - `(f:Food)`：标签为"Food"的节点，别名为f
+   - `[r:not_eat|do_eat|recommand_eat]`：三种可能的关系类型：
+     - `not_eat`：不应该吃
+     - `do_eat`：可以吃
+     - `recommand_eat`：推荐吃
+
+2. **`WHERE d.name='高血压'`**
+   - 筛选条件：只选择名称为"高血压"的疾病节点
+
+3. **`RETURN type(r) AS relationship_type, f.name AS food_name`**
+   - 返回结果：显示关系类型和食物名称
+   - `type(r)`：获取关系的类型（not_eat、do_eat或recommand_eat）
+   - `f.name`：获取食物的名称
+
+## 查询结果示例
+查询会返回类似这样的结果：
+```
+relationship_type | food_name
+-----------------|-----------
+not_eat          | 咸菜
+do_eat           | 苹果
+recommand_eat    | 芹菜
+```
+
+## 简单来说
+这个查询的意思是：**找出所有与高血压相关的食物，并告诉我每种食物是"不应该吃"、"可以吃"还是"推荐吃"**。
+2025-12-05 11:26:12,650 - services.graph_service - INFO - 查询验证通过
+2025-12-05 11:26:12,664 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 11:26:12,665 - services.graph_service - INFO - 查询验证通过
+2025-12-05 11:26:12,670 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 11:26:12,670 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 11:26:12,700 - services.graph_service - INFO - 查询执行成功，耗时: 0.030秒，返回 22 条记录
+2025-12-05 11:26:12,701 - services.graph_service - INFO - 查询执行完成，返回 22 条记录
+2025-12-05 11:26:49,420 - services.graph_service - INFO - 收到生成查询请求: 感冒了有什么症状？
+2025-12-05 11:26:49,518 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 11:26:51,869 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE d.name = '感冒' 
+RETURN s.name
+2025-12-05 11:26:51,909 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 11:27:02,373 - services.graph_service - INFO - 查询解释: 这个Cypher查询是用来从Neo4j图数据库中查找与"感冒"相关的症状信息。
+
+让我用简单的语言解释一下：
+
+**查询目的：**
+找出所有与"感冒"这种疾病相关的症状名称。
+
+**查询逻辑：**
+
+1. **`MATCH (d:Disease)-[:has_symptom]->(s:Symptom)`**
+   - 在图中寻找这样的关系模式：
+   - 一个标签为"Disease"的节点（用`d`表示）
+   - 通过"has_symptom"关系指向
+   - 一个标签为"Symptom"的节点（用`s`表示）
+
+2. **`WHERE d.name = '感冒'`**
+   - 只选择那些疾病名称正好是"感冒"的情况
+
+3. **`RETURN s.name`**
+   - 返回所有符合条件的症状节点的名称
+
+**简单来说：**
+这个查询相当于问："感冒有哪些症状？"
+
+**返回结果示例：**
+可能会返回类似这样的症状列表：
+- 发烧
+- 咳嗽
+- 流鼻涕
+- 头痛
+- 喉咙痛
+
+这个查询在医疗知识图谱、症状自查系统等应用中非常有用，可以帮助用户了解特定疾病的常见症状。
+2025-12-05 11:27:02,374 - services.graph_service - INFO - 查询验证通过
+2025-12-05 11:27:02,379 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE d.name = '感冒' 
+RETURN s.name
+2025-12-05 11:27:02,379 - services.graph_service - INFO - 查询验证通过
+2025-12-05 11:27:02,382 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE d.name = '感冒' 
+RETURN s.name
+2025-12-05 11:27:02,383 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE d.name = '感冒' 
+RETURN s.name
+2025-12-05 11:27:02,388 - services.graph_service - INFO - 查询执行成功，耗时: 0.005秒，返回 9 条记录
+2025-12-05 11:27:02,388 - services.graph_service - INFO - 查询执行完成，返回 9 条记录
+2025-12-05 11:27:33,579 - services.graph_service - INFO - 收到生成查询请求: 高血压患者饮食要注意什么？
+2025-12-05 11:27:33,681 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 11:27:36,681 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 11:27:36,728 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 11:27:50,179 - services.graph_service - INFO - 查询解释: 这个Cypher查询是用来在Neo4j图数据库中查找与"高血压"相关的食物信息的。让我一步步解释：
+
+## 查询目的
+查找所有与"高血压"疾病相关的食物，并显示它们之间的关系类型和食物名称。
+
+## 查询分解
+
+1. **`MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food)`**
+   - 匹配模式：查找疾病节点和食物节点之间的连接
+   - `(d:Disease)`：标签为"Disease"的节点，别名为d
+   - `(f:Food)`：标签为"Food"的节点，别名为f
+   - `[r:not_eat|do_eat|recommand_eat]`：关系可以是三种类型之一：
+     - `not_eat`：不能吃的食物
+     - `do_eat`：可以吃的食物  
+     - `recommand_eat`：推荐吃的食物
+
+2. **`WHERE d.name='高血压'`**
+   - 筛选条件：只选择名称为"高血压"的疾病节点
+
+3. **`RETURN type(r) AS relationship_type, f.name AS food_name`**
+   - 返回结果：
+     - 关系类型（重命名为relationship_type）
+     - 食物名称（重命名为food_name）
+
+## 查询结果示例
+返回的数据可能像这样：
+```
+relationship_type | food_name
+-----------------|-----------
+not_eat          | 咸菜
+do_eat           | 苹果
+recommand_eat    | 芹菜
+```
+
+## 简单理解
+这个查询相当于问："对于高血压患者，哪些食物是不能吃的、可以吃的和推荐吃的？分别是什么食物？"
+2025-12-05 11:27:50,181 - services.graph_service - INFO - 查询验证通过
+2025-12-05 11:27:50,191 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 11:27:50,191 - services.graph_service - INFO - 查询验证通过
+2025-12-05 11:27:50,194 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 11:27:50,194 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 11:27:50,212 - services.graph_service - INFO - 查询执行成功，耗时: 0.017秒，返回 22 条记录
+2025-12-05 11:27:50,212 - services.graph_service - INFO - 查询执行完成，返回 22 条记录
+2025-12-05 14:09:35,503 - services.graph_service - INFO - 收到生成查询请求: 保和丸能治疗什么疾病？
+2025-12-05 14:09:35,605 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 14:09:38,817 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Drug)-[:recommand_drug|command_drug]-(dis:Disease) 
+WHERE d.name = '保和丸' 
+RETURN dis.name AS disease_name
+2025-12-05 14:09:38,864 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 14:09:43,381 - openai._base_client - INFO - Retrying request to /chat/completions in 0.411340 seconds
+2025-12-05 14:09:43,940 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 14:09:57,880 - services.graph_service - INFO - 查询解释: 这个Cypher查询用于在Neo4j图数据库中查找与特定药物相关的疾病信息。让我详细解释一下：
+
+## 查询目的
+查找与名为"保和丸"的药物相关的所有疾病。
+
+## 查询分解
+
+1. **`MATCH (d:Drug)-[:recommand_drug|command_drug]-(dis:Disease)`**
+   - 匹配模式：查找Drug节点和Disease节点之间的关系
+   - `(d:Drug)`：标签为"Drug"的节点，别名为"d"
+   - `(dis:Disease)`：标签为"Disease"的节点，别名为"dis"
+   - `-[:recommand_drug|command_drug]-`：两种可能的关系类型：
+     - `recommand_drug`（推荐药物）
+     - `command_drug`（可能是个拼写错误，应该是"recommend_drug"）
+
+2. **`WHERE d.name = '保和丸'`**
+   - 筛选条件：只选择名称为"保和丸"的Drug节点
+
+3. **`RETURN dis.name AS disease_name`**
+   - 返回结果：返回所有相关疾病的名称，并将结果列命名为"disease_name"
+
+## 通俗理解
+这个查询相当于问："在数据库中，有哪些疾病与'保和丸'这个药物相关？"
+
+## 可能的场景
+- 医疗知识图谱中查询药物的适应症
+- 药物推荐系统中查找药物的治疗范围
+- 中医药数据库中查询方剂的临床应用
+
+## 注意
+查询中使用了两种关系类型，其中`command_drug`可能是`recommend_drug`的拼写错误，因为两者意思相近。在实际数据库中，这可能反映了数据录入时的不一致性。
+2025-12-05 14:09:57,883 - services.graph_service - INFO - 查询验证通过
+2025-12-05 14:09:57,907 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Drug)-[:recommand_drug|command_drug]-(dis:Disease) 
+WHERE d.name = '保和丸' 
+RETURN dis.name AS disease_name
+2025-12-05 14:09:57,907 - services.graph_service - INFO - 查询验证通过
+2025-12-05 14:09:57,910 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Drug)-[:recommand_drug|command_drug]-(dis:Disease) 
+WHERE d.name = '保和丸' 
+RETURN dis.name AS disease_name
+2025-12-05 14:09:57,911 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Drug)-[:recommand_drug|command_drug]-(dis:Disease) 
+WHERE d.name = '保和丸' 
+RETURN dis.name AS disease_name
+2025-12-05 14:09:58,071 - services.graph_service - INFO - 查询执行成功，耗时: 0.161秒，返回 8 条记录
+2025-12-05 14:09:58,072 - services.graph_service - INFO - 查询执行完成，返回 8 条记录
+2025-12-05 14:12:04,851 - services.graph_service - INFO - 收到生成查询请求: 我一直咳嗽两三周了，应该怎么治疗？
+2025-12-05 14:12:04,955 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 14:12:08,794 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE s.name CONTAINS '咳嗽' 
+RETURN d.name AS disease_name, 
+       d.cure_way AS treatment_methods, 
+       d.cure_department AS recommended_department,
+       d.cure_lasttime AS treatment_duration
+2025-12-05 14:12:08,832 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 14:12:25,204 - services.graph_service - INFO - 查询解释: 这个Cypher查询是在Neo4j图数据库中查找与"咳嗽"相关的疾病信息。让我一步步解释：
+
+## 查询目的
+查找所有具有"咳嗽"症状的疾病，并返回这些疾病的相关治疗信息。
+
+## 查询结构解析：
+
+1. **`MATCH (d:Disease)-[:has_symptom]->(s:Symptom)`**
+   - 匹配模式：查找所有标签为"Disease"的节点（用变量`d`表示）
+   - 这些疾病节点通过`has_symptom`关系指向标签为"Symptom"的节点（用变量`s`表示）
+   - 这表示"疾病有症状"的关系
+
+2. **`WHERE s.name CONTAINS '咳嗽'`**
+   - 筛选条件：只选择症状名称中包含"咳嗽"二字的症状节点
+   - `CONTAINS`是部分匹配，所以会匹配"咳嗽"、"干咳"、"咳嗽带痰"等
+
+3. **`RETURN`** 语句返回以下信息：
+   - `d.name AS disease_name`：疾病名称
+   - `d.cure_way AS treatment_methods`：治疗方法
+   - `d.cure_department AS recommended_department`：推荐就诊科室
+   - `d.cure_lasttime AS treatment_duration`：治疗持续时间
+
+## 实际应用场景
+这个查询可以用于：
+- 医疗知识图谱查询系统
+- 症状自查工具（输入症状，查看可能的疾病）
+- 医疗分诊系统（根据症状推荐就诊科室）
+
+## 查询结果示例
+可能会返回类似这样的结果：
+```
+感冒 - 药物治疗，休息 - 内科 - 7-10天
+支气管炎 - 抗生素治疗 - 呼吸科 - 2-3周
+肺炎 - 住院治疗，抗生素 - 呼吸科 - 3-4周
+```
+
+简单说：**这个查询找出所有会引起咳嗽的疾病，并显示每种疾病的名称、治疗方法、应该去哪个科室看病，以及大概需要治疗多长时间。**
+2025-12-05 14:12:25,206 - services.graph_service - INFO - 查询验证通过
+2025-12-05 14:12:25,218 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE s.name CONTAINS '咳嗽' 
+RETURN d.name AS disease_name, 
+       d.cure_way AS treatment_methods, 
+       d.cure_department AS recommended_department,
+       d.cure_lasttime AS treatment_duration
+2025-12-05 14:12:25,219 - services.graph_service - INFO - 查询验证通过
+2025-12-05 14:12:25,222 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE s.name CONTAINS '咳嗽' 
+RETURN d.name AS disease_name, 
+       d.cure_way AS treatment_methods, 
+       d.cure_department AS recommended_department,
+       d.cure_lasttime AS treatment_duration
+2025-12-05 14:12:25,223 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE s.name CONTAINS '咳嗽' 
+RETURN d.name AS disease_name, 
+       d.cure_way AS treatment_methods, 
+       d.cure_department AS recommended_department,
+       d.cure_lasttime AS treatment_duration
+2025-12-05 14:12:25,348 - services.graph_service - INFO - 查询执行成功，耗时: 0.125秒，返回 46 条记录
+2025-12-05 14:12:25,348 - services.graph_service - INFO - 查询执行完成，返回 46 条记录
+2025-12-05 14:30:55,050 - services.graph_service - INFO - 收到生成查询请求: 有一种类似布洛芬的药物，叫对乙什么什么来着
+2025-12-05 14:30:55,166 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 14:30:57,429 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Drug) 
+WHERE d.name CONTAINS '对乙' 
+RETURN d.name
+2025-12-05 14:30:57,464 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 14:31:06,000 - services.graph_service - INFO - 查询解释: 这个Cypher查询的作用是：
+
+**查找所有名称中包含"对乙"这两个字的药品节点，并返回这些药品的名称。**
+
+让我详细解释一下：
+
+1. **`MATCH (d:Drug)`** - 匹配所有标签为"Drug"的节点，并给这些节点起一个别名"d"
+
+2. **`WHERE d.name CONTAINS '对乙'`** - 筛选条件：只选择那些name属性中包含"对乙"这两个字的节点
+   - 比如会匹配到"对乙酰氨基酚"、"对乙酰胺"等名称中包含"对乙"的药品
+
+3. **`RETURN d.name`** - 返回结果：只返回这些药品节点的name属性值
+
+**简单来说**：这个查询就像是在药品数据库中搜索所有名称里带有"对乙"这两个字的药品，然后把它们的名字列出来。
+
+**实际应用场景**：比如你想查找所有含有"对乙"成分的药品，这个查询就能帮你快速找到相关药品的名称。
+2025-12-05 14:31:06,000 - services.graph_service - INFO - 查询验证通过
+2025-12-05 14:31:06,005 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Drug) 
+WHERE d.name CONTAINS '对乙' 
+RETURN d.name
+2025-12-05 14:31:06,007 - services.graph_service - INFO - 查询验证通过
+2025-12-05 14:31:06,013 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Drug) 
+WHERE d.name CONTAINS '对乙' 
+RETURN d.name
+2025-12-05 14:31:06,013 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Drug) 
+WHERE d.name CONTAINS '对乙' 
+RETURN d.name
+2025-12-05 14:31:06,095 - services.graph_service - INFO - 查询执行成功，耗时: 0.082秒，返回 4 条记录
+2025-12-05 14:31:06,095 - services.graph_service - INFO - 查询执行完成，返回 4 条记录
+2025-12-05 14:56:20,891 - services.graph_service - INFO - 收到生成查询请求: 高血压患者饮食要注意什么？
+2025-12-05 14:56:20,988 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 14:56:23,987 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 14:56:24,032 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 14:56:38,197 - services.graph_service - INFO - 查询解释: 这个Cypher查询是用来在Neo4j图数据库中查找与"高血压"相关的食物信息的。让我一步步解释：
+
+## 查询目的
+查找所有与"高血压"疾病相关的食物，并显示它们之间的关系类型和食物名称。
+
+## 查询分解
+
+1. **`MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food)`**
+   - 匹配模式：查找疾病节点和食物节点之间的连接
+   - `(d:Disease)`：标签为"Disease"的节点，别名为d
+   - `(f:Food)`：标签为"Food"的节点，别名为f
+   - `[r:not_eat|do_eat|recommand_eat]`：关系可以是三种类型之一：
+     - `not_eat`：不能吃的食物
+     - `do_eat`：可以吃的食物  
+     - `recommand_eat`：推荐吃的食物
+
+2. **`WHERE d.name='高血压'`**
+   - 筛选条件：只选择名称为"高血压"的疾病节点
+
+3. **`RETURN type(r) AS relationship_type, f.name AS food_name`**
+   - 返回结果：
+     - 关系类型（重命名为relationship_type）
+     - 食物名称（重命名为food_name）
+
+## 查询结果示例
+查询可能返回类似这样的结果：
+```
+relationship_type | food_name
+-----------------|-----------
+not_eat          | 咸菜
+do_eat           | 苹果
+recommand_eat    | 芹菜
+```
+
+## 简单理解
+这个查询的意思是："找出所有与高血压相关的食物，并告诉我每种食物是高血压患者不能吃的、可以吃的还是推荐吃的，同时显示食物名称。"
+2025-12-05 14:56:38,200 - services.graph_service - INFO - 查询验证通过
+2025-12-05 14:56:38,211 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 14:56:38,211 - services.graph_service - INFO - 查询验证通过
+2025-12-05 14:56:38,217 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 14:56:38,217 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 14:56:38,349 - services.graph_service - INFO - 查询执行成功，耗时: 0.132秒，返回 22 条记录
+2025-12-05 14:56:38,350 - services.graph_service - INFO - 查询执行完成，返回 22 条记录
+2025-12-05 14:57:03,319 - services.graph_service - INFO - 收到生成查询请求: 高血压患者饮食要注意什么？
+2025-12-05 14:57:03,423 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 14:57:06,210 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 14:57:06,269 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 14:57:20,100 - services.graph_service - INFO - 查询解释: 这个Cypher查询用于在Neo4j图数据库中查找与"高血压"相关的食物信息。让我详细解释一下：
+
+## 查询的作用：
+查找所有与"高血压"疾病相关的食物，并显示它们之间的关系类型和食物名称。
+
+## 各部分解释：
+
+1. **`MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food)`**
+   - 匹配疾病节点和食物节点之间的三种关系：
+     - `not_eat`：不应该吃的食物
+     - `do_eat`：可以吃的食物  
+     - `recommand_eat`：推荐吃的食物
+   - `d:Disease`：标签为"Disease"的节点
+   - `f:Food`：标签为"Food"的节点
+   - `[r:...]`：关系变量r，可以是三种关系中的任意一种
+
+2. **`WHERE d.name='高血压'`**
+   - 筛选条件：只查找名称为"高血压"的疾病节点
+
+3. **`RETURN type(r) AS relationship_type, f.name AS food_name`**
+   - 返回结果包含两列：
+     - `relationship_type`：关系类型（not_eat/do_eat/recommand_eat）
+     - `food_name`：食物名称
+
+## 查询结果示例：
+```
+relationship_type | food_name
+-----------------|----------
+not_eat          | 咸菜
+do_eat           | 苹果
+recommand_eat    | 芹菜
+```
+
+## 简单来说：
+这个查询就是**找出所有与高血压相关的食物，并告诉我们每种食物是"不能吃"、"可以吃"还是"推荐吃"的**。
+2025-12-05 14:57:20,101 - services.graph_service - INFO - 查询验证通过
+2025-12-05 14:57:20,113 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 14:57:20,113 - services.graph_service - INFO - 查询验证通过
+2025-12-05 14:57:20,119 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 14:57:20,120 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 14:57:20,153 - services.graph_service - INFO - 查询执行成功，耗时: 0.032秒，返回 22 条记录
+2025-12-05 14:57:20,153 - services.graph_service - INFO - 查询执行完成，返回 22 条记录
+2025-12-05 14:57:31,916 - services.graph_service - INFO - 收到生成查询请求: 感冒了有什么症状？
+2025-12-05 14:57:32,018 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 14:57:34,340 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE d.name = '感冒' 
+RETURN s.name
+2025-12-05 14:57:34,386 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 14:57:44,936 - services.graph_service - INFO - 查询解释: 这个Cypher查询的作用是**查找与"感冒"相关的所有症状**。
+
+让我详细解释一下：
+
+## 查询结构解析：
+
+1. **`MATCH (d:Disease)-[:has_symptom]->(s:Symptom)`**
+   - 匹配图数据库中的模式：一个标签为"Disease"的节点（用变量`d`表示），通过"has_symptom"关系指向一个标签为"Symptom"的节点（用变量`s`表示）
+   - 这表示疾病节点和症状节点之间的关联关系
+
+2. **`WHERE d.name = '感冒'`**
+   - 筛选条件：只选择疾病名称为"感冒"的节点
+
+3. **`RETURN s.name`**
+   - 返回结果：只返回症状节点的名称
+
+## 通俗理解：
+这个查询相当于在问："感冒这个疾病有哪些症状？"
+
+## 实际应用场景：
+- 医疗知识图谱查询
+- 疾病诊断辅助系统
+- 健康咨询应用
+
+## 返回结果示例：
+可能会返回类似这样的症状列表：
+- "发烧"
+- "咳嗽"  
+- "流鼻涕"
+- "喉咙痛"
+- "头痛"
+
+这个查询简单但实用，是图数据库中典型的关联查询，利用了图结构直观表示实体间关系的优势。
+2025-12-05 14:57:44,937 - services.graph_service - INFO - 查询验证通过
+2025-12-05 14:57:44,945 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE d.name = '感冒' 
+RETURN s.name
+2025-12-05 14:57:44,946 - services.graph_service - INFO - 查询验证通过
+2025-12-05 14:57:44,952 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE d.name = '感冒' 
+RETURN s.name
+2025-12-05 14:57:44,952 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE d.name = '感冒' 
+RETURN s.name
+2025-12-05 14:57:45,033 - services.graph_service - INFO - 查询执行成功，耗时: 0.081秒，返回 9 条记录
+2025-12-05 14:57:45,034 - services.graph_service - INFO - 查询执行完成，返回 9 条记录
+2025-12-05 15:06:56,577 - services.graph_service - INFO - 收到生成查询请求: 高血压患者饮食要注意什么？
+2025-12-05 15:06:56,688 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:06:59,559 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 15:06:59,593 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:07:13,669 - services.graph_service - INFO - 查询解释: 这个Cypher查询用于在Neo4j图数据库中查找与"高血压"相关的食物信息。让我详细解释一下：
+
+## 查询的作用：
+查找所有与"高血压"疾病相关的食物，并显示它们之间的关系类型和食物名称。
+
+## 各部分解释：
+
+1. **`MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food)`**
+   - 匹配疾病节点和食物节点之间的三种关系：
+     - `not_eat`：不能吃的食物
+     - `do_eat`：可以吃的食物  
+     - `recommand_eat`：推荐吃的食物
+   - `d`：代表疾病节点（标签为Disease）
+   - `f`：代表食物节点（标签为Food）
+   - `r`：代表它们之间的关系
+
+2. **`WHERE d.name='高血压'`**
+   - 筛选条件：只查找名称为"高血压"的疾病
+
+3. **`RETURN type(r) AS relationship_type, f.name AS food_name`**
+   - 返回结果包含两列：
+     - `relationship_type`：关系类型（不能吃/可以吃/推荐吃）
+     - `food_name`：食物名称
+
+## 查询结果示例：
+```
+relationship_type | food_name
+-----------------|-----------
+not_eat          | 咸菜
+do_eat           | 苹果
+recommand_eat    | 芹菜
+```
+
+## 简单来说：
+这个查询就是**找出高血压患者不能吃、可以吃和推荐吃的所有食物列表**，帮助高血压患者了解饮食注意事项。
+2025-12-05 15:07:13,670 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:07:13,682 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 15:07:13,682 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:07:13,687 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 15:07:13,687 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 15:07:13,711 - services.graph_service - INFO - 查询执行成功，耗时: 0.024秒，返回 22 条记录
+2025-12-05 15:07:13,711 - services.graph_service - INFO - 查询执行完成，返回 22 条记录
+2025-12-05 15:07:29,808 - services.graph_service - INFO - 收到生成查询请求: 肩痛应该怎么治疗？
+2025-12-05 15:07:29,916 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:07:32,666 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肩痛' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 15:07:32,714 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:07:49,761 - services.graph_service - INFO - 查询解释: 这个Cypher查询是用来从Neo4j图数据库中查找与"肩痛"相关的治疗方法的。让我一步步解释：
+
+## 查询结构解析：
+
+1. **`MATCH (d:Disease)-[:treated_by]->(t:Treatment)`**
+   - 匹配模式：查找所有标签为"Disease"的节点（用变量`d`表示）
+   - 这些疾病节点通过`treated_by`关系连接到标签为"Treatment"的节点（用变量`t`表示）
+   - 这表示"疾病被治疗方法治疗"的关系
+
+2. **`WHERE d.name = '肩痛'`**
+   - 筛选条件：只选择名称为"肩痛"的疾病节点
+
+3. **`RETURN d.name AS disease_name, COLLECT(t.name) AS treatments`**
+   - 返回结果：
+     - 疾病名称（别名为`disease_name`）
+     - 使用`COLLECT()`函数将所有匹配的治疗方法名称收集到一个列表中（别名为`treatments`）
+
+## 查询结果：
+这个查询会返回一行结果，包含：
+- `disease_name`: "肩痛"
+- `treatments`: 一个包含所有治疗"肩痛"的方法名称的数组
+
+## 实际应用场景：
+假设你的图数据库中有这样的数据：
+- 疾病节点：肩痛、头痛、背痛等
+- 治疗方法节点：物理治疗、药物治疗、手术治疗等
+- 关系：肩痛 -[treated_by]-> 物理治疗，肩痛 -[treated_by]-> 药物治疗等
+
+查询结果可能是：
+```
+╔══════════════╦══════════════════════════════════════╗
+║ disease_name ║ treatments                           ║
+╠══════════════╬══════════════════════════════════════╣
+║ 肩痛         ║ ["物理治疗", "药物治疗", "针灸"]     ║
+╚══════════════╩══════════════════════════════════════╝
+```
+
+简单说：**这个查询找出了所有能治疗"肩痛"的方法，并把它们整理成一个列表返回。**
+2025-12-05 15:07:49,764 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:07:49,776 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肩痛' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 15:07:49,776 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:07:49,781 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肩痛' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 15:07:49,781 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肩痛' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 15:07:49,872 - services.graph_service - INFO - 查询执行成功，耗时: 0.090秒，返回 0 条记录
+2025-12-05 15:07:49,872 - services.graph_service - INFO - 查询执行完成，返回 0 条记录
+2025-12-05 15:14:42,391 - services.graph_service - INFO - 收到生成查询请求: 高血压患者饮食要注意什么？
+2025-12-05 15:14:42,503 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:14:45,719 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 15:14:45,762 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:15:00,069 - services.graph_service - INFO - 查询解释: 这个Cypher查询用于在Neo4j图数据库中查找与"高血压"相关的食物信息。让我详细解释一下：
+
+## 查询目的
+查找所有与"高血压"疾病相关的食物，并显示它们之间的关系类型和食物名称。
+
+## 各部分解释：
+
+1. **`MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food)`**
+   - 匹配模式：查找疾病节点和食物节点之间的连接
+   - `(d:Disease)`：标签为"Disease"的节点，别名为`d`
+   - `(f:Food)`：标签为"Food"的节点，别名为`f`
+   - `[r:not_eat|do_eat|recommand_eat]`：关系类型可以是三种之一：
+     - `not_eat`：不能吃的食物
+     - `do_eat`：可以吃的食物  
+     - `recommand_eat`：推荐吃的食物
+
+2. **`WHERE d.name='高血压'`**
+   - 筛选条件：只选择名称为"高血压"的疾病节点
+
+3. **`RETURN type(r) AS relationship_type, f.name AS food_name`**
+   - 返回结果：包含两列
+   - `type(r)`：关系的类型（not_eat/do_eat/recommand_eat）
+   - `f.name`：食物的名称
+
+## 查询结果示例：
+```
+relationship_type | food_name
+-----------------|-----------
+not_eat          | 咸菜
+do_eat           | 苹果
+recommand_eat    | 芹菜
+```
+
+## 简单来说：
+这个查询相当于问："对于高血压患者，哪些食物是不能吃的、可以吃的和推荐吃的？分别是什么食物？"
+2025-12-05 15:15:00,071 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:15:00,078 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 15:15:00,079 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:15:00,083 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 15:15:00,084 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 15:15:00,115 - services.graph_service - INFO - 查询执行成功，耗时: 0.031秒，返回 22 条记录
+2025-12-05 15:15:00,115 - services.graph_service - INFO - 查询执行完成，返回 22 条记录
+2025-12-05 15:15:12,816 - services.graph_service - INFO - 收到生成查询请求: 肩痛应该怎么治疗？
+2025-12-05 15:15:12,946 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:15:16,430 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肩痛' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 15:15:16,469 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:15:32,035 - services.graph_service - INFO - 查询解释: 这个Cypher查询是用来从Neo4j图数据库中查找与"肩痛"相关的治疗方法的。让我一步步解释：
+
+**查询目的：**
+查找名为"肩痛"的疾病以及所有治疗这种疾病的方法。
+
+**查询结构解析：**
+
+1. **`MATCH (d:Disease)-[:treated_by]->(t:Treatment)`**
+   - 匹配图数据库中的模式
+   - `d:Disease`：查找标签为"Disease"的节点，并给它起个别名"d"
+   - `t:Treatment`：查找标签为"Treatment"的节点，并给它起个别名"t"
+   - `-[:treated_by]->`：查找从疾病节点到治疗节点之间，关系类型为"treated_by"的连接
+   - 简单说：找到所有"疾病被治疗"的关系
+
+2. **`WHERE d.name = '肩痛'`**
+   - 筛选条件：只选择疾病名称为"肩痛"的记录
+
+3. **`RETURN d.name AS disease_name, COLLECT(t.name) AS treatments`**
+   - 返回结果：
+     - `d.name AS disease_name`：疾病名称（重命名为disease_name）
+     - `COLLECT(t.name) AS treatments`：将所有匹配的治疗名称收集到一个列表中（重命名为treatments）
+
+**查询结果：**
+会返回一行数据，包含：
+- `disease_name`："肩痛"
+- `treatments`：一个包含所有治疗"肩痛"的方法名称的数组
+
+**举例说明：**
+如果数据库中有以下数据：
+- 肩痛 → 物理治疗
+- 肩痛 → 药物治疗
+- 肩痛 → 手术治疗
+
+那么查询结果会是：
+```
+disease_name | treatments
+-------------|----------------------------
+肩痛         | ["物理治疗", "药物治疗", "手术治疗"]
+```
+
+这个查询很实用，可以快速找出某种疾病的所有治疗方法。
+2025-12-05 15:15:32,037 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:15:32,044 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肩痛' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 15:15:32,044 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:15:32,047 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肩痛' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 15:15:32,047 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肩痛' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 15:15:32,059 - services.graph_service - INFO - 查询执行成功，耗时: 0.012秒，返回 0 条记录
+2025-12-05 15:15:32,061 - services.graph_service - INFO - 查询执行完成，返回 0 条记录
+2025-12-05 15:16:24,047 - services.graph_service - INFO - 收到生成查询请求: 小儿麻痹症怎么治疗
+2025-12-05 15:16:24,138 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:16:27,372 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '小儿麻痹症' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 15:16:27,415 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:16:44,947 - services.graph_service - INFO - 查询解释: 这个Cypher查询是用来从Neo4j图数据库中查找特定疾病及其相关治疗方法的。让我一步步解释：
+
+## 查询目的
+查找名为"小儿麻痹症"的疾病，并返回该疾病的所有治疗方法。
+
+## 查询分解
+
+1. **`MATCH (d:Disease)-[:treated_by]->(t:Treatment)`**
+   - 匹配图数据库中的模式
+   - `d:Disease`：查找标签为"Disease"的节点，给它们起别名"d"
+   - `t:Treatment`：查找标签为"Treatment"的节点，给它们起别名"t"
+   - `-[:treated_by]->`：查找从疾病节点到治疗节点之间，关系类型为"treated_by"的连接
+   - 意思是：找到所有通过"treated_by"关系连接到治疗方法的疾病
+
+2. **`WHERE d.name = '小儿麻痹症'`**
+   - 筛选条件：只选择疾病名称等于"小儿麻痹症"的记录
+
+3. **`RETURN d.name AS disease_name, COLLECT(t.name) AS treatments`**
+   - 返回结果：
+     - `d.name AS disease_name`：疾病名称，重命名为"disease_name"
+     - `COLLECT(t.name) AS treatments`：将所有匹配的治疗方法名称收集到一个列表中，重命名为"treatments"
+
+## 查询结果
+查询会返回一行结果，包含两个字段：
+- `disease_name`: "小儿麻痹症"
+- `treatments`: 一个包含所有治疗该疾病的方法名称的数组
+
+## 示例结果可能如下：
+```
+╔════════════════╤══════════════════════════════════════════╗
+║ disease_name   │ treatments                               ║
+╠════════════════╪══════════════════════════════════════════╣
+║ 小儿麻痹症      │ ["物理治疗", "康复训练", "手术治疗"]     ║
+╚════════════════╧══════════════════════════════════════════╝
+```
+
+简单来说，这个查询就是："给我找小儿麻痹症这个病，然后列出所有能治疗它的方法"。
+2025-12-05 15:16:44,949 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:16:44,953 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '小儿麻痹症' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 15:16:44,953 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:16:44,956 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '小儿麻痹症' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 15:16:44,956 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '小儿麻痹症' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 15:16:44,984 - services.graph_service - INFO - 查询执行成功，耗时: 0.028秒，返回 0 条记录
+2025-12-05 15:16:44,984 - services.graph_service - INFO - 查询执行完成，返回 0 条记录
+2025-12-05 15:22:32,907 - services.graph_service - INFO - Neo4j 连接已关闭
+2025-12-05 15:22:34,864 - services.graph_service - INFO - 成功连接到 Neo4j: neo4j://0.0.0.0:7687
+2025-12-05 15:23:10,338 - services.graph_service - INFO - 收到生成查询请求: 高血压患者饮食要注意什么？
+2025-12-05 15:23:10,871 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:23:13,815 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 15:23:13,974 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:23:28,792 - services.graph_service - INFO - 查询解释: 这个Cypher查询用于在Neo4j图数据库中查找与"高血压"相关的食物信息。让我详细解释一下：
+
+## 查询目的
+查找所有与"高血压"疾病相关的食物，并显示它们之间的关系类型和食物名称。
+
+## 各部分解释：
+
+1. **`MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food)`**
+   - 匹配模式：查找疾病节点和食物节点之间的连接
+   - `(d:Disease)`：标签为"Disease"的节点，别名为`d`
+   - `(f:Food)`：标签为"Food"的节点，别名为`f`
+   - `[r:not_eat|do_eat|recommand_eat]`：关系类型可以是三种之一：
+     - `not_eat`：不能吃的食物
+     - `do_eat`：可以吃的食物  
+     - `recommand_eat`：推荐吃的食物
+
+2. **`WHERE d.name='高血压'`**
+   - 筛选条件：只选择名称为"高血压"的疾病节点
+
+3. **`RETURN type(r) AS relationship_type, f.name AS food_name`**
+   - 返回结果：显示关系类型和对应的食物名称
+   - `type(r)`：获取关系的类型（not_eat/do_eat/recommand_eat）
+   - `f.name`：获取食物的名称
+
+## 查询结果示例：
+```
+relationship_type | food_name
+-----------------|-----------
+not_eat          | 咸菜
+do_eat           | 苹果
+recommand_eat    | 芹菜
+```
+
+## 简单来说：
+这个查询相当于问："高血压患者有哪些食物需要注意？哪些不能吃？哪些可以吃？哪些推荐吃？"
+2025-12-05 15:23:28,794 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:23:28,804 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 15:23:28,804 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:23:28,808 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 15:23:28,808 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 15:23:28,870 - services.graph_service - INFO - 查询执行成功，耗时: 0.062秒，返回 22 条记录
+2025-12-05 15:23:28,870 - services.graph_service - INFO - 查询执行完成，返回 22 条记录
+2025-12-05 15:23:58,877 - services.graph_service - INFO - 收到生成查询请求: 我一直咳嗽两三周了，应该怎么治疗？
+2025-12-05 15:23:59,028 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:24:03,588 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE s.name CONTAINS '咳嗽' 
+RETURN d.name AS disease_name, 
+       d.cure_way AS treatment_methods, 
+       d.cure_department AS recommended_department,
+       d.cure_lasttime AS treatment_duration,
+       d.cured_prob AS cure_probability
+2025-12-05 15:24:03,630 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:24:23,824 - services.graph_service - INFO - 查询解释: 这个Cypher查询用于在医疗知识图谱中查找与"咳嗽"相关的疾病信息。让我详细解释每个部分：
+
+## 查询目的
+查找所有包含"咳嗽"症状的疾病，并返回这些疾病的相关治疗信息。
+
+## 查询结构解析：
+
+### 1. **MATCH子句**
+```
+MATCH (d:Disease)-[:has_symptom]->(s:Symptom)
+```
+- 匹配模式：查找所有疾病节点（标签为`Disease`）与症状节点（标签为`Symptom`）之间的关系
+- `d`：代表疾病节点（Disease）
+- `s`：代表症状节点（Symptom）
+- `[:has_symptom]`：表示疾病"有症状"的关系
+
+### 2. **WHERE子句**
+```
+WHERE s.name CONTAINS '咳嗽'
+```
+- 筛选条件：只选择症状名称中包含"咳嗽"的症状
+- `CONTAINS`：表示包含关系，不要求完全匹配（如"干咳"、"咳嗽带痰"都会被匹配）
+
+### 3. **RETURN子句**
+返回以下疾病相关信息：
+- `d.name AS disease_name`：疾病名称
+- `d.cure_way AS treatment_methods`：治疗方法
+- `d.cure_department AS recommended_department`：推荐就诊科室
+- `d.cure_lasttime AS treatment_duration`：治疗持续时间
+- `d.cured_prob AS cure_probability`：治愈概率
+
+## 实际应用场景
+这个查询可以用于：
+- 医疗咨询系统：患者输入症状"咳嗽"，系统返回可能的疾病和治疗建议
+- 临床决策支持：帮助医生快速了解可能的相关疾病
+- 患者教育：让患者了解咳嗽可能对应的疾病和治疗信息
+
+## 结果示例
+查询结果可能返回类似这样的数据：
+```
+| disease_name | treatment_methods | recommended_department | treatment_duration | cure_probability |
+|--------------|-------------------|------------------------|--------------------|------------------|
+| 普通感冒     | 休息、多喝水      | 内科                   | 7-10天             | 95%              |
+| 支气管炎     | 抗生素治疗        | 呼吸科                 | 2-3周              | 85%              |
+| 肺炎         | 住院治疗          | 呼吸科                 | 3-4周              | 90%              |
+```
+
+这个查询本质上是在回答："哪些疾病会引起咳嗽？这些疾病如何治疗？"
+2025-12-05 15:24:23,826 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:24:23,838 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE s.name CONTAINS '咳嗽' 
+RETURN d.name AS disease_name, 
+       d.cure_way AS treatment_methods, 
+       d.cure_department AS recommended_department,
+       d.cure_lasttime AS treatment_duration,
+       d.cured_prob AS cure_probability
+2025-12-05 15:24:23,838 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:24:23,841 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE s.name CONTAINS '咳嗽' 
+RETURN d.name AS disease_name, 
+       d.cure_way AS treatment_methods, 
+       d.cure_department AS recommended_department,
+       d.cure_lasttime AS treatment_duration,
+       d.cured_prob AS cure_probability
+2025-12-05 15:24:23,842 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE s.name CONTAINS '咳嗽' 
+RETURN d.name AS disease_name, 
+       d.cure_way AS treatment_methods, 
+       d.cure_department AS recommended_department,
+       d.cure_lasttime AS treatment_duration,
+       d.cured_prob AS cure_probability
+2025-12-05 15:24:23,942 - services.graph_service - INFO - 查询执行成功，耗时: 0.100秒，返回 46 条记录
+2025-12-05 15:24:23,942 - services.graph_service - INFO - 查询执行完成，返回 46 条记录
+2025-12-05 15:25:05,039 - services.graph_service - INFO - 收到生成查询请求: 那我现在需要去那个科室看
+2025-12-05 15:25:05,177 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:25:10,650 - services.graph_service - INFO - 生成的 Cypher 查询: 我需要知道您具体是什么疾病或症状，才能告诉您应该去哪个科室。请告诉我：
+1. 您具体是什么疾病？（例如：高血压、糖尿病、感冒等）
+2. 或者您有什么症状？（例如：头痛、发烧、咳嗽等）
+这样我才能为您生成准确的查询，找到对应的科室信息。
+如果您已经知道疾病名称，请告诉我，我可以立即为您生成查询。例如：
+- 如果您有高血压，查询会是：`MATCH (d:Disease)-[:belongs_to]->(dept:Department) WHERE d.name='高血压' RETURN dept.name`
+2025-12-05 15:25:10,744 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:25:37,902 - services.graph_service - INFO - 查询解释: 好的，这是一个非常典型的Neo4j Cypher查询，用于在图数据库中查找信息。让我用简单的话来解释它。
+
+这个查询的目的是：**根据一个疾病名称（比如“高血压”），在数据库里找到它应该去哪个科室看病。**
+
+我们可以把它拆解成几个部分来理解：
+
+### 查询语句
+```
+MATCH (d:Disease)-[:belongs_to]->(dept:Department) WHERE d.name='高血压' RETURN dept.name
+```
+
+### 各部分解释：
+
+1.  **`MATCH`**：
+    *   这是Cypher查询的“查找”指令。意思是“请在图里找到符合以下模式的数据”。
+
+2.  **`(d:Disease)`**：
+    *   这定义了一个**节点**，并给它起了个临时代号叫 `d`。
+    *   `:Disease` 是这个节点的**标签**。在医疗知识图谱里，它代表这是一个“疾病”类型的节点（比如高血压、糖尿病这些实体）。
+
+3.  **`-[:belongs_to]->`**：
+    *   这定义了两个节点之间的**关系**。
+    *   箭头 `->` 指明了关系的方向：从疾病节点 `d` **指向** 科室节点 `dept`。
+    *   `[:belongs_to]` 是关系的**类型**。它的字面意思就是“属于”，清晰地表达了“某种疾病属于某个科室”这个业务逻辑。
+
+4.  **`(dept:Department)`**：
+    *   这定义了另一个**节点**，代号 `dept`。
+    *   `:Department` 是它的标签，代表这是一个“科室”类型的节点（比如心血管内科、内分泌科等）。
+
+5.  **`WHERE d.name='高血压'`**：
+    *   这是**过滤条件**。它告诉数据库：我们不是要找所有的疾病，我们只关心那个名字（`name`属性）**等于**“高血压”的疾病节点 `d`。
+
+6.  **`RETURN dept.name`**：
+    *   这是**返回结果**的指令。查询找到了数据，但我们只关心最终结果：那个科室节点 `dept` 的名字（`name`属性）。
+
+### 整个查询的“人话”翻译：
+
+> **“请在图数据库里，找到一个标签为‘疾病’（Disease）且名字叫‘高血压’的节点（我们叫它d）。然后，顺着从它出发的、类型为‘属于’（belongs_to）的关系箭头，找到它所连接的那个标签为‘科室’（Department）的节点（我们叫它dept）。最后，请把这个科室节点的名字告诉我。”**
+
+### 举个例子：
+假设你的数据库里存储了这样的知识：
+*   有一个节点：`(:Disease {name: ‘高血压’})`
+*   有一个节点：`(:Department {name: ‘心血管内科’})`
+*   它们之间有一条关系：`(:Disease)-[:belongs_to]->(:Department)`
+
+那么运行这个查询后，你得到的结果就会是：**`心血管内科`**。
+
+### 总结：
+这个查询完美地利用了**图数据库直观表达关联关系**的优势。它没有使用复杂的多表连接（像在传统关系型数据库里那样），而是直接通过“关系”这条线，一步就从“疾病”导航到了对应的“科室”，非常高效和清晰。
+2025-12-05 15:25:37,904 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:25:37,914 - services.graph_service - INFO - 收到验证查询请求: 我需要知道您具体是什么疾病或症状，才能告诉您应该去哪个科室。请告诉我：
+1. 您具体是什么疾病？（例如：高血压、糖尿病、感冒等）
+2. 或者您有什么症状？（例如：头痛、发烧、咳嗽等）
+这样我才能为您生成准确的查询，找到对应的科室信息。
+如果您已经知道疾病名称，请告诉我，我可以立即为您生成查询。例如：
+- 如果您有高血压，查询会是：`MATCH (d:Disease)-[:belongs_to]->(dept:Department) WHERE d.name='高血压' RETURN dept.name`
+2025-12-05 15:25:37,914 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:25:37,920 - services.graph_service - INFO - 收到执行查询请求: 我需要知道您具体是什么疾病或症状，才能告诉您应该去哪个科室。请告诉我：
+1. 您具体是什么疾病？（例如：高血压、糖尿病、感冒等）
+2. 或者您有什么症状？（例如：头痛、发烧、咳嗽等）
+这样我才能为您生成准确的查询，找到对应的科室信息。
+如果您已经知道疾病名称，请告诉我，我可以立即为您生成查询。例如：
+- 如果您有高血压，查询会是：`MATCH (d:Disease)-[:belongs_to]->(dept:Department) WHERE d.name='高血压' RETURN dept.name`
+2025-12-05 15:25:37,921 - services.graph_service - INFO - 执行 Cypher 查询: 我需要知道您具体是什么疾病或症状，才能告诉您应该去哪个科室。请告诉我：
+1. 您具体是什么疾病？（例如：高血压、糖尿病、感冒等）
+2. 或者您有什么症状？（例如：头痛、发烧、咳嗽等）
+这样我才能为您生成准确的查询，找到对应的科室信息。
+如果您已经知道疾病名称，请告诉我，我可以立即为您生成查询。例如：
+- 如果您有高血压，查询会是：`MATCH (d:Disease)-[:belongs_to]->(dept:Department) WHERE d.name='高血压' RETURN dept.name`
+2025-12-05 15:25:38,069 - services.graph_service - ERROR - 查询执行失败，耗时: 0.148秒，错误: {code: Neo.ClientError.Statement.SyntaxError} {message: Invalid input '我需要知道您具体是什么疾病或症状': expected 'FOREACH', 'ALTER', 'ORDER BY', 'CALL', 'USING PERIODIC COMMIT', 'CREATE', 'LOAD CSV', 'START DATABASE', 'STOP DATABASE', 'DEALLOCATE', 'DELETE', 'DENY', 'DETACH', 'DROP', 'DRYRUN', 'FINISH', 'GRANT', 'INSERT', 'LIMIT', 'MATCH', 'MERGE', 'NODETACH', 'OFFSET', 'OPTIONAL', 'REALLOCATE', 'REMOVE', 'RENAME', 'RETURN', 'REVOKE', 'ENABLE SERVER', 'SET', 'SHOW', 'SKIP', 'TERMINATE', 'UNWIND', 'USE' or 'WITH' (line 1, column 1 (offset: 0))
+"我需要知道您具体是什么疾病或症状，才能告诉您应该去哪个科室。请告诉我："
+ ^}
+2025-12-05 15:27:00,523 - services.graph_service - INFO - 收到生成查询请求: 我每天都昏昏沉沉，可以吃点什么食物回复一下
+2025-12-05 15:27:00,688 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:27:15,662 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (s:Symptom)<-[:has_symptom]-(d:Disease)-[:recommand_eat]->(f:Food)
+WHERE s.name CONTAINS '昏昏沉沉' OR s.name CONTAINS '昏沉' OR s.name CONTAINS '嗜睡' OR s.name CONTAINS '乏力'
+RETURN DISTINCT d.name AS disease_name, COLLECT(DISTINCT f.name) AS recommended_foods
+2025-12-05 15:27:15,704 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:27:30,005 - services.graph_service - INFO - 查询解释: 这个Cypher查询是在一个医疗知识图谱中查找与特定症状相关的疾病及其推荐食物。让我用简单的语言解释一下：
+
+## 查询目的
+查找那些会引起"昏昏沉沉"、"昏沉"、"嗜睡"或"乏力"这些症状的疾病，并找出这些疾病推荐的食疗食物。
+
+## 查询结构解析
+
+1. **MATCH部分**：
+   - 查找症状节点（标签为`Symptom`）
+   - 这些症状被疾病节点（标签为`Disease`）通过`has_symptom`关系连接
+   - 这些疾病又通过`recommand_eat`关系连接到食物节点（标签为`Food`）
+
+2. **WHERE部分**：
+   - 筛选出症状名称包含以下任意一个关键词的症状：
+     - "昏昏沉沉"
+     - "昏沉" 
+     - "嗜睡"
+     - "乏力"
+
+3. **RETURN部分**：
+   - 返回疾病名称（去重）
+   - 对于每个疾病，收集所有推荐的食物名称（去重）
+
+## 简单来说
+这个查询相当于在问："哪些疾病会导致人感到昏昏沉沉、嗜睡或乏力？对于这些疾病，医生建议吃哪些食物来帮助恢复？"
+
+## 返回结果示例
+查询结果可能看起来像这样：
+```
+疾病名称         | 推荐食物
+-------------------------------------------
+贫血           | [菠菜, 红枣, 猪肝]
+低血糖         | [蜂蜜, 全麦面包, 水果]
+甲状腺功能减退 | [海带, 紫菜, 鱼类]
+```
+
+这个查询对于医疗咨询系统或健康管理应用很有用，可以帮助用户根据症状了解可能的健康问题及相应的饮食建议。
+2025-12-05 15:27:30,008 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:27:30,029 - services.graph_service - INFO - 收到验证查询请求: MATCH (s:Symptom)<-[:has_symptom]-(d:Disease)-[:recommand_eat]->(f:Food)
+WHERE s.name CONTAINS '昏昏沉沉' OR s.name CONTAINS '昏沉' OR s.name CONTAINS '嗜睡' OR s.name CONTAINS '乏力'
+RETURN DISTINCT d.name AS disease_name, COLLECT(DISTINCT f.name) AS recommended_foods
+2025-12-05 15:27:30,029 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:27:30,032 - services.graph_service - INFO - 收到执行查询请求: MATCH (s:Symptom)<-[:has_symptom]-(d:Disease)-[:recommand_eat]->(f:Food)
+WHERE s.name CONTAINS '昏昏沉沉' OR s.name CONTAINS '昏沉' OR s.name CONTAINS '嗜睡' OR s.name CONTAINS '乏力'
+RETURN DISTINCT d.name AS disease_name, COLLECT(DISTINCT f.name) AS recommended_foods
+2025-12-05 15:27:30,032 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (s:Symptom)<-[:has_symptom]-(d:Disease)-[:recommand_eat]->(f:Food)
+WHERE s.name CONTAINS '昏昏沉沉' OR s.name CONTAINS '昏沉' OR s.name CONTAINS '嗜睡' OR s.name CONTAINS '乏力'
+RETURN DISTINCT d.name AS disease_name, COLLECT(DISTINCT f.name) AS recommended_foods
+2025-12-05 15:27:30,357 - services.graph_service - INFO - 查询执行成功，耗时: 0.324秒，返回 153 条记录
+2025-12-05 15:27:30,357 - services.graph_service - INFO - 查询执行完成，返回 153 条记录
+2025-12-05 15:54:03,594 - services.graph_service - INFO - 收到生成查询请求: 高血压治疗大概需要多少钱？
+2025-12-05 15:54:03,753 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:54:05,914 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease) 
+WHERE d.name = '高血压' 
+RETURN d.name, d.cost_money
+2025-12-05 15:54:05,968 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:54:19,505 - services.graph_service - INFO - 查询解释: 这个Cypher查询是用来从Neo4j图数据库中查找特定疾病信息的。让我一步步解释：
+
+**查询目的：**
+查找名为"高血压"的疾病，并返回它的名称和治疗费用信息。
+
+**查询分解：**
+
+1. **`MATCH (d:Disease)`**
+   - `MATCH`：匹配模式，类似于SQL中的SELECT
+   - `(d:Disease)`：查找所有标签为"Disease"的节点，并给它们起个别名"d"
+
+2. **`WHERE d.name = '高血压'`**
+   - `WHERE`：条件过滤，只选择满足条件的节点
+   - `d.name = '高血压'`：只选择名字属性为"高血压"的疾病节点
+
+3. **`RETURN d.name, d.cost_money`**
+   - `RETURN`：指定要返回的结果
+   - `d.name, d.cost_money`：返回疾病节点的名称属性和治疗费用属性
+
+**简单来说：**
+这个查询的意思是："在数据库中找出所有疾病节点，但只选择名字叫'高血压'的那个，然后告诉我这个病的名字和它的治疗费用。"
+
+**返回结果示例：**
+可能会返回类似这样的结果：
+```
+╒══════════╤═════════════╕
+│ d.name   │ d.cost_money│
+╞══════════╪═════════════╡
+│ 高血压   │ 5000        │
+└──────────┴─────────────┘
+```
+
+这个查询假设你的图数据库中有一个"Disease"标签的节点，且这些节点有"name"和"cost_money"两个属性。
+2025-12-05 15:54:19,506 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:54:19,516 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease) 
+WHERE d.name = '高血压' 
+RETURN d.name, d.cost_money
+2025-12-05 15:54:19,516 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:54:19,520 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease) 
+WHERE d.name = '高血压' 
+RETURN d.name, d.cost_money
+2025-12-05 15:54:19,520 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease) 
+WHERE d.name = '高血压' 
+RETURN d.name, d.cost_money
+2025-12-05 15:54:19,592 - services.graph_service - INFO - 查询执行成功，耗时: 0.072秒，返回 1 条记录
+2025-12-05 15:54:19,592 - services.graph_service - INFO - 查询执行完成，返回 1 条记录
+2025-12-05 15:58:19,993 - services.graph_service - INFO - 收到生成查询请求: 你好你是谁
+2025-12-05 15:58:20,148 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:58:26,437 - services.graph_service - INFO - 生成的 Cypher 查询: 我是专业的Neo4j Cypher查询生成器，专门帮助您将自然语言问题转换为准确、高效的Cypher查询语句。我可以根据您提供的图数据库模式，生成针对疾病、药品、症状、食物、检查、科室等各种实体及其关系的查询。
+如果您有关于医疗知识图谱的查询需求，比如：
+- 查找某种疾病的症状、药品、食物建议
+- 查询疾病的科室归属、并发症
+- 查找药品的生产厂商
+- 查询医保状态、传染性、治疗费用等信息
+- 以及其他基于图数据库的查询
+请告诉我您的具体问题，我会为您生成相应的Cypher查询语句。
+2025-12-05 15:58:26,487 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:58:37,877 - services.graph_service - INFO - 查询解释: 您好！看起来您提供的这段文字并不是一个Cypher查询语句，而是一个**自我介绍或服务说明**。
+
+让我为您解释一下这段文字的核心内容：
+
+### 这段话在说什么？
+这是一个**AI助手或工具的功能介绍**，它主要说明了：
+1. **身份**：一个专业的Neo4j Cypher查询生成器
+2. **功能**：将自然语言问题转换为Cypher查询语句
+3. **专业领域**：医疗知识图谱（疾病、药品、症状等实体和关系）
+4. **服务范围**：提供各种医疗相关的查询生成服务
+
+### 如果这是一个真正的Cypher查询，它可能长这样：
+如果您想查询“糖尿病的症状”，对应的Cypher查询可能是：
+```cypher
+MATCH (d:Disease {name: '糖尿病'})-[:HAS_SYMPTOM]->(s:Symptom)
+RETURN s.name AS 症状
+```
+
+### 您需要帮助吗？
+如果您：
+- ✅ **想解释一个真正的Cypher查询**：请提供具体的查询语句
+- ✅ **想生成医疗相关的查询**：请告诉我您的具体问题（比如“查找高血压的推荐食物”）
+- ✅ **想了解Cypher基础知识**：我可以为您讲解
+
+请告诉我您具体需要什么帮助！ 😊
+2025-12-05 15:58:37,878 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:58:37,889 - services.graph_service - INFO - 收到验证查询请求: 我是专业的Neo4j Cypher查询生成器，专门帮助您将自然语言问题转换为准确、高效的Cypher查询语句。我可以根据您提供的图数据库模式，生成针对疾病、药品、症状、食物、检查、科室等各种实体及其关系的查询。
+如果您有关于医疗知识图谱的查询需求，比如：
+- 查找某种疾病的症状、药品、食物建议
+- 查询疾病的科室归属、并发症
+- 查找药品的生产厂商
+- 查询医保状态、传染性、治疗费用等信息
+- 以及其他基于图数据库的查询
+请告诉我您的具体问题，我会为您生成相应的Cypher查询语句。
+2025-12-05 15:58:37,889 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:58:37,893 - services.graph_service - INFO - 收到执行查询请求: 我是专业的Neo4j Cypher查询生成器，专门帮助您将自然语言问题转换为准确、高效的Cypher查询语句。我可以根据您提供的图数据库模式，生成针对疾病、药品、症状、食物、检查、科室等各种实体及其关系的查询。
+如果您有关于医疗知识图谱的查询需求，比如：
+- 查找某种疾病的症状、药品、食物建议
+- 查询疾病的科室归属、并发症
+- 查找药品的生产厂商
+- 查询医保状态、传染性、治疗费用等信息
+- 以及其他基于图数据库的查询
+请告诉我您的具体问题，我会为您生成相应的Cypher查询语句。
+2025-12-05 15:58:37,893 - services.graph_service - INFO - 执行 Cypher 查询: 我是专业的Neo4j Cypher查询生成器，专门帮助您将自然语言问题转换为准确、高效的Cypher查询语句。我可以根据您提供的图数据库模式，生成针对疾病、药品、症状、食物、检查、科室等各种实体及其关系的查询。
+如果您有关于医疗知识图谱的查询需求，比如：
+- 查找某种疾病的症状、药品、食物建议
+- 查询疾病的科室归属、并发症
+- 查找药品的生产厂商
+- 查询医保状态、传染性、治疗费用等信息
+- 以及其他基于图数据库的查询
+请告诉我您的具体问题，我会为您生成相应的Cypher查询语句。
+2025-12-05 15:58:37,920 - services.graph_service - ERROR - 查询执行失败，耗时: 0.027秒，错误: {code: Neo.ClientError.Statement.SyntaxError} {message: Invalid input '我是专业的Neo4j': expected 'FOREACH', 'ALTER', 'ORDER BY', 'CALL', 'USING PERIODIC COMMIT', 'CREATE', 'LOAD CSV', 'START DATABASE', 'STOP DATABASE', 'DEALLOCATE', 'DELETE', 'DENY', 'DETACH', 'DROP', 'DRYRUN', 'FINISH', 'GRANT', 'INSERT', 'LIMIT', 'MATCH', 'MERGE', 'NODETACH', 'OFFSET', 'OPTIONAL', 'REALLOCATE', 'REMOVE', 'RENAME', 'RETURN', 'REVOKE', 'ENABLE SERVER', 'SET', 'SHOW', 'SKIP', 'TERMINATE', 'UNWIND', 'USE' or 'WITH' (line 1, column 1 (offset: 0))
+"我是专业的Neo4j Cypher查询生成器，专门帮助您将自然语言问题转换为准确、高效的Cypher查询语句。我可以根据您提供的图数据库模式，生成针对疾病、药品、症状、食物、检查、科室等各种实体及其关系的查询。"
+ ^}
+2025-12-05 15:59:35,974 - services.graph_service - INFO - 收到生成查询请求: 我想吃一点可以预防臼齿的食物
+2025-12-05 15:59:36,114 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:59:39,981 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[:has_symptom]->(s:Symptom)
+WHERE s.name CONTAINS '臼齿'
+WITH DISTINCT d
+MATCH (d)-[r:recommand_eat|do_eat]-(f:Food)
+RETURN DISTINCT f.name AS food_name
+2025-12-05 15:59:40,028 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 15:59:54,253 - services.graph_service - INFO - 查询解释: 我来用简单的方式解释这个Cypher查询：
+
+## 查询目的
+**找出与"臼齿"相关症状的疾病，然后推荐这些疾病可以吃或建议吃的食物**
+
+## 分步解释：
+
+### 第一步：找到相关疾病
+```cypher
+MATCH (d:Disease)-[:has_symptom]->(s:Symptom)
+WHERE s.name CONTAINS '臼齿'
+```
+- 在知识图谱中查找所有疾病节点（标签为`Disease`）
+- 这些疾病必须通过`has_symptom`关系连接到症状节点
+- 症状名称需要包含"臼齿"（比如"臼齿疼痛"、"臼齿松动"等）
+
+### 第二步：去重疾病
+```cypher
+WITH DISTINCT d
+```
+- 对上一步找到的疾病进行去重
+- 避免同一个疾病因为多个相关症状被重复计算
+
+### 第三步：查找相关食物
+```cypher
+MATCH (d)-[r:recommand_eat|do_eat]-(f:Food)
+```
+- 为每个疾病查找相关的食物
+- 通过两种关系查找：
+  - `recommand_eat`：推荐吃的食物
+  - `do_eat`：可以吃的食物
+- 找到标签为`Food`的食物节点
+
+### 第四步：返回结果
+```cypher
+RETURN DISTINCT f.name AS food_name
+```
+- 返回所有找到的食物名称
+- 再次去重，确保食物不重复
+
+## 简单来说：
+这个查询相当于问："如果有人有臼齿相关的问题，应该吃什么或可以吃什么食物？"
+
+**实际应用场景**：比如用户搜索"臼齿痛应该吃什么"，系统就会用这个查询找出相关的食物建议。
+2025-12-05 15:59:54,255 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:59:54,265 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[:has_symptom]->(s:Symptom)
+WHERE s.name CONTAINS '臼齿'
+WITH DISTINCT d
+MATCH (d)-[r:recommand_eat|do_eat]-(f:Food)
+RETURN DISTINCT f.name AS food_name
+2025-12-05 15:59:54,265 - services.graph_service - INFO - 查询验证通过
+2025-12-05 15:59:54,271 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[:has_symptom]->(s:Symptom)
+WHERE s.name CONTAINS '臼齿'
+WITH DISTINCT d
+MATCH (d)-[r:recommand_eat|do_eat]-(f:Food)
+RETURN DISTINCT f.name AS food_name
+2025-12-05 15:59:54,271 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[:has_symptom]->(s:Symptom)
+WHERE s.name CONTAINS '臼齿'
+WITH DISTINCT d
+MATCH (d)-[r:recommand_eat|do_eat]-(f:Food)
+RETURN DISTINCT f.name AS food_name
+2025-12-05 15:59:54,378 - services.graph_service - INFO - 查询执行成功，耗时: 0.107秒，返回 0 条记录
+2025-12-05 15:59:54,379 - services.graph_service - INFO - 查询执行完成，返回 0 条记录
+2025-12-05 16:05:38,130 - services.graph_service - INFO - 收到生成查询请求: 我想吃点健康的食物
+2025-12-05 16:05:38,331 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:05:44,066 - services.graph_service - INFO - 生成的 Cypher 查询: 根据您的查询，我理解您想查找与健康饮食相关的信息。不过，我需要更具体的疾病或症状信息来为您提供准确的饮食建议。例如：
+1. 如果您有特定疾病（如糖尿病、高血压等），我可以为您查找该疾病推荐的食物。
+2. 如果您有特定症状，我可以为您查找相关疾病的饮食建议。
+请提供更具体的信息，例如：
+- "糖尿病适合吃什么食物？"
+- "高血压患者不能吃什么食物？"
+- "感冒期间推荐吃什么？"
+这样我就能为您生成准确的Cypher查询来获取相关饮食建议了。
+2025-12-05 16:05:44,126 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:06:09,556 - services.graph_service - INFO - 查询解释: 您提供的这段文字看起来更像是一个**用户引导说明**，而不是一个标准的Cypher查询。它没有包含任何Cypher的关键字（如 `MATCH`、`RETURN`、`WHERE` 等）。
+
+让我为您分析一下：
+
+### 这段文字的本质：
+这是一个**自然语言的提示或引导**，目的是让用户提供更具体的信息，以便系统（或知识图谱）能够构建一个**精准的Cypher查询**来从图数据库中查找答案。
+
+### 核心逻辑解释：
+假设我们有一个关于“疾病”和“食物”的知识图谱，其中包含：
+*   **节点**：比如 `疾病`（糖尿病、高血压、感冒）、`症状`、`食物`（苹果、菠菜、肥肉）。
+*   **关系**：比如 `推荐食用`、`避免食用`、`伴有症状`。
+
+您提供的引导文本，是为了让用户把模糊的问题（“健康饮食”）转换成具体的问题，这样系统就能将其翻译成具体的Cypher查询。
+
+---
+
+### 举例说明如何转换成Cypher查询：
+
+如果用户按照引导提问：**“糖尿病适合吃什么食物？”**
+
+系统可能会在后台生成类似以下的Cypher查询：
+
+```cypher
+// 查询思路：找到名为“糖尿病”的疾病节点，然后查找所有被该疾病“推荐”的食物。
+MATCH (d:Disease {name: '糖尿病'})-[r:RECOMMENDS]->(f:Food)
+RETURN f.name AS 推荐食物
+```
+
+**简单解释：**
+*   `MATCH`： 用于在图中查找模式。
+*   `(d:Disease {name: '糖尿病'})`： 查找一个带有标签 `Disease` 且属性 `name` 为“糖尿病”的节点，并给它起个别名 `d`。
+*   `-[r:RECOMMENDS]->`： 查找从节点 `d` 出发，类型为 `RECOMMENDS`（推荐）的关系，指向另一个节点。
+*   `(f:Food)`： 找到关系所指的、标签为 `Food` 的节点，起别名为 `f`。
+*   `RETURN f.name`： 返回这些食物节点的名称。
+
+---
+
+如果用户提问：**“高血压患者不能吃什么食物？”**
+
+对应的Cypher查询可能如下：
+
+```cypher
+// 查询思路：找到名为“高血压”的疾病节点，然后查找所有该疾病建议“避免”的食物。
+MATCH (d:Disease {name: '高血压'})-[r:Avoid]->(f:Food)
+RETURN f.name AS 应避免的食物
+```
+
+### 总结：
+您提供的文本是一个**前端的、面向用户的交互引导**。它的作用是**收集精确的输入**，以便后端能够**生成并执行一个具体、高效的Cypher查询**，从而从复杂的知识图谱中快速定位到用户真正需要的信息。
+
+**简单来说：用户的问题越具体，生成的Cypher查询就越简单、越准确，返回的答案也就越有用。** 您提供的引导正是为了促成这一步。
+2025-12-05 16:06:09,558 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:06:09,573 - services.graph_service - INFO - 收到验证查询请求: 根据您的查询，我理解您想查找与健康饮食相关的信息。不过，我需要更具体的疾病或症状信息来为您提供准确的饮食建议。例如：
+1. 如果您有特定疾病（如糖尿病、高血压等），我可以为您查找该疾病推荐的食物。
+2. 如果您有特定症状，我可以为您查找相关疾病的饮食建议。
+请提供更具体的信息，例如：
+- "糖尿病适合吃什么食物？"
+- "高血压患者不能吃什么食物？"
+- "感冒期间推荐吃什么？"
+这样我就能为您生成准确的Cypher查询来获取相关饮食建议了。
+2025-12-05 16:06:09,573 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:06:09,578 - services.graph_service - INFO - 收到执行查询请求: 根据您的查询，我理解您想查找与健康饮食相关的信息。不过，我需要更具体的疾病或症状信息来为您提供准确的饮食建议。例如：
+1. 如果您有特定疾病（如糖尿病、高血压等），我可以为您查找该疾病推荐的食物。
+2. 如果您有特定症状，我可以为您查找相关疾病的饮食建议。
+请提供更具体的信息，例如：
+- "糖尿病适合吃什么食物？"
+- "高血压患者不能吃什么食物？"
+- "感冒期间推荐吃什么？"
+这样我就能为您生成准确的Cypher查询来获取相关饮食建议了。
+2025-12-05 16:06:09,578 - services.graph_service - INFO - 执行 Cypher 查询: 根据您的查询，我理解您想查找与健康饮食相关的信息。不过，我需要更具体的疾病或症状信息来为您提供准确的饮食建议。例如：
+1. 如果您有特定疾病（如糖尿病、高血压等），我可以为您查找该疾病推荐的食物。
+2. 如果您有特定症状，我可以为您查找相关疾病的饮食建议。
+请提供更具体的信息，例如：
+- "糖尿病适合吃什么食物？"
+- "高血压患者不能吃什么食物？"
+- "感冒期间推荐吃什么？"
+这样我就能为您生成准确的Cypher查询来获取相关饮食建议了。
+2025-12-05 16:06:09,604 - services.graph_service - ERROR - 查询执行失败，耗时: 0.025秒，错误: {code: Neo.ClientError.Statement.SyntaxError} {message: Invalid input '根据您的查询': expected 'FOREACH', 'ALTER', 'ORDER BY', 'CALL', 'USING PERIODIC COMMIT', 'CREATE', 'LOAD CSV', 'START DATABASE', 'STOP DATABASE', 'DEALLOCATE', 'DELETE', 'DENY', 'DETACH', 'DROP', 'DRYRUN', 'FINISH', 'GRANT', 'INSERT', 'LIMIT', 'MATCH', 'MERGE', 'NODETACH', 'OFFSET', 'OPTIONAL', 'REALLOCATE', 'REMOVE', 'RENAME', 'RETURN', 'REVOKE', 'ENABLE SERVER', 'SET', 'SHOW', 'SKIP', 'TERMINATE', 'UNWIND', 'USE' or 'WITH' (line 1, column 1 (offset: 0))
+"根据您的查询，我理解您想查找与健康饮食相关的信息。不过，我需要更具体的疾病或症状信息来为您提供准确的饮食建议。例如："
+ ^}
+2025-12-05 16:07:20,822 - services.graph_service - INFO - 收到生成查询请求: 我现在想知道胃癌是什么症状
+2025-12-05 16:07:20,946 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:07:23,767 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE d.name = '胃癌' 
+RETURN d.name AS disease_name, COLLECT(s.name) AS symptoms
+2025-12-05 16:07:23,819 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:07:38,555 - services.graph_service - INFO - 查询解释: 这个Cypher查询是用来从图数据库中查找与"胃癌"相关的所有症状。让我一步步解释：
+
+## 查询目的
+查找名为"胃癌"的疾病，并收集它所有的症状名称。
+
+## 查询分解
+
+1. **`MATCH (d:Disease)-[:has_symptom]->(s:Symptom)`**
+   - 匹配模式：查找所有标签为"Disease"的节点（用变量`d`表示），这些节点通过"has_symptom"关系指向标签为"Symptom"的节点（用变量`s`表示）
+   - 这表示"疾病有症状"的关系
+
+2. **`WHERE d.name = '胃癌'`**
+   - 筛选条件：只选择名称为"胃癌"的疾病节点
+
+3. **`RETURN d.name AS disease_name, COLLECT(s.name) AS symptoms`**
+   - 返回结果：
+     - `d.name AS disease_name`：疾病名称（重命名为disease_name）
+     - `COLLECT(s.name) AS symptoms`：将所有匹配的症状名称收集到一个列表中（重命名为symptoms）
+
+## 查询结果
+查询会返回类似这样的结果：
+```
+╔══════════════╦══════════════════════════════════════════════════════════════╗
+║ disease_name ║ symptoms                                                    ║
+╠══════════════╬══════════════════════════════════════════════════════════════╣
+║ 胃癌         ║ ["上腹痛", "消化不良", "体重下降", "恶心", "呕吐", ...]      ║
+╚══════════════╩══════════════════════════════════════════════════════════════╝
+```
+
+## 简单理解
+这个查询相当于问："胃癌有哪些症状？" 然后把所有症状名称整理成一个列表返回。
+2025-12-05 16:07:38,556 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:07:38,565 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE d.name = '胃癌' 
+RETURN d.name AS disease_name, COLLECT(s.name) AS symptoms
+2025-12-05 16:07:38,565 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:07:38,569 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE d.name = '胃癌' 
+RETURN d.name AS disease_name, COLLECT(s.name) AS symptoms
+2025-12-05 16:07:38,569 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE d.name = '胃癌' 
+RETURN d.name AS disease_name, COLLECT(s.name) AS symptoms
+2025-12-05 16:07:38,660 - services.graph_service - INFO - 查询执行成功，耗时: 0.090秒，返回 1 条记录
+2025-12-05 16:07:38,660 - services.graph_service - INFO - 查询执行完成，返回 1 条记录
+2025-12-05 16:08:00,899 - services.graph_service - INFO - 收到生成查询请求: 我要吃点预防胃癌的食物
+2025-12-05 16:08:01,010 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:08:04,018 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[:recommand_eat|do_eat]-(f:Food) 
+WHERE d.name = '胃癌' 
+RETURN f.name AS food_name
+2025-12-05 16:08:04,059 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:08:14,072 - services.graph_service - INFO - 查询解释: 这个Cypher查询的作用是**查找与胃癌相关的推荐食物**。
+
+让我详细解释一下：
+
+## 查询结构解析：
+
+1. **`MATCH (d:Disease)-[:recommand_eat|do_eat]-(f:Food)`**
+   - 在图中查找两种关系：
+     - `recommand_eat`（推荐吃）
+     - `do_eat`（可以吃）
+   - 这些关系连接着"疾病"节点（d）和"食物"节点（f）
+
+2. **`WHERE d.name = '胃癌'`**
+   - 只选择疾病名称为"胃癌"的节点
+
+3. **`RETURN f.name AS food_name`**
+   - 返回所有符合条件的食物名称
+
+## 通俗理解：
+这个查询相当于在问："对于胃癌患者，有哪些食物是推荐吃的或者可以吃的？"
+
+## 结果示例：
+查询结果会返回一个食物名称列表，比如：
+- 小米粥
+- 蒸蛋
+- 鱼肉
+- ...（具体取决于你的图数据库中的数据）
+
+## 应用场景：
+这种查询在医疗健康、营养建议等系统中很常见，可以帮助患者了解适合自己病情的饮食建议。
+2025-12-05 16:08:14,074 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:08:14,083 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[:recommand_eat|do_eat]-(f:Food) 
+WHERE d.name = '胃癌' 
+RETURN f.name AS food_name
+2025-12-05 16:08:14,083 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:08:14,089 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[:recommand_eat|do_eat]-(f:Food) 
+WHERE d.name = '胃癌' 
+RETURN f.name AS food_name
+2025-12-05 16:08:14,090 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[:recommand_eat|do_eat]-(f:Food) 
+WHERE d.name = '胃癌' 
+RETURN f.name AS food_name
+2025-12-05 16:08:14,134 - services.graph_service - INFO - 查询执行成功，耗时: 0.044秒，返回 20 条记录
+2025-12-05 16:08:14,135 - services.graph_service - INFO - 查询执行完成，返回 20 条记录
+2025-12-05 16:08:36,483 - services.graph_service - INFO - 收到生成查询请求: 漏漏漏
+2025-12-05 16:08:36,590 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:08:39,725 - services.graph_service - INFO - 生成的 Cypher 查询: 看起来您的查询描述不完整。请提供完整的自然语言查询，例如：
+- "查找高血压建议服用什么药物？"
+- "查找糖尿病有哪些症状？"
+- "查找医保覆盖的疾病有哪些？"
+- "查找传染性疾病有哪些？"
+这样我才能为您生成准确的Cypher查询。
+2025-12-05 16:08:39,771 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:08:49,017 - services.graph_service - INFO - 查询解释: 看起来您可能误解了，我并不是要生成Cypher查询，而是希望您提供一段Cypher查询代码，让我来为您解释它的含义和功能。
+
+让我用简单的方式解释一下Cypher查询：
+
+**Cypher是什么？**
+- Cypher是Neo4j图数据库的查询语言（就像SQL是关系型数据库的查询语言一样）
+- 它专门用于在图结构中查找和操作数据
+
+**Cypher查询的基本结构：**
+```
+MATCH (节点)-[关系]->(另一个节点)
+WHERE 条件
+RETURN 要返回的内容
+```
+
+**举个例子：**
+如果您给我一个实际的Cypher查询，比如：
+```
+MATCH (p:Person)-[:LIVES_IN]->(c:City)
+WHERE c.name = '北京'
+RETURN p.name, p.age
+```
+
+我可以解释为：
+"查找所有住在北京的人，并返回他们的姓名和年龄"
+
+**请您：**
+1. 提供一段具体的Cypher查询代码
+2. 我会用简单明了的语言解释这个查询在做什么
+
+您有具体的Cypher查询需要我解释吗？
+2025-12-05 16:08:49,019 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:08:49,029 - services.graph_service - INFO - 收到验证查询请求: 看起来您的查询描述不完整。请提供完整的自然语言查询，例如：
+- "查找高血压建议服用什么药物？"
+- "查找糖尿病有哪些症状？"
+- "查找医保覆盖的疾病有哪些？"
+- "查找传染性疾病有哪些？"
+这样我才能为您生成准确的Cypher查询。
+2025-12-05 16:08:49,030 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:08:49,035 - services.graph_service - INFO - 收到执行查询请求: 看起来您的查询描述不完整。请提供完整的自然语言查询，例如：
+- "查找高血压建议服用什么药物？"
+- "查找糖尿病有哪些症状？"
+- "查找医保覆盖的疾病有哪些？"
+- "查找传染性疾病有哪些？"
+这样我才能为您生成准确的Cypher查询。
+2025-12-05 16:08:49,035 - services.graph_service - INFO - 执行 Cypher 查询: 看起来您的查询描述不完整。请提供完整的自然语言查询，例如：
+- "查找高血压建议服用什么药物？"
+- "查找糖尿病有哪些症状？"
+- "查找医保覆盖的疾病有哪些？"
+- "查找传染性疾病有哪些？"
+这样我才能为您生成准确的Cypher查询。
+2025-12-05 16:08:49,067 - services.graph_service - ERROR - 查询执行失败，耗时: 0.032秒，错误: {code: Neo.ClientError.Statement.SyntaxError} {message: Invalid input '看起来您的查询描述不完整': expected 'FOREACH', 'ALTER', 'ORDER BY', 'CALL', 'USING PERIODIC COMMIT', 'CREATE', 'LOAD CSV', 'START DATABASE', 'STOP DATABASE', 'DEALLOCATE', 'DELETE', 'DENY', 'DETACH', 'DROP', 'DRYRUN', 'FINISH', 'GRANT', 'INSERT', 'LIMIT', 'MATCH', 'MERGE', 'NODETACH', 'OFFSET', 'OPTIONAL', 'REALLOCATE', 'REMOVE', 'RENAME', 'RETURN', 'REVOKE', 'ENABLE SERVER', 'SET', 'SHOW', 'SKIP', 'TERMINATE', 'UNWIND', 'USE' or 'WITH' (line 1, column 1 (offset: 0))
+"看起来您的查询描述不完整。请提供完整的自然语言查询，例如："
+ ^}
+2025-12-05 16:09:02,494 - services.graph_service - INFO - 收到生成查询请求: 哈哈哈
+2025-12-05 16:09:02,630 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:09:07,773 - services.graph_service - INFO - 生成的 Cypher 查询: 看起来您发送的内容不是有效的查询请求。如果您想查询医疗知识图谱中的信息，请告诉我您想了解什么，例如：
+- 某种疾病的症状、治疗方法或推荐药物
+- 某种药物的生产厂商
+- 疾病的饮食建议（能吃、不能吃、推荐吃的食物）
+- 疾病的检查项目或所属科室
+- 医保覆盖的疾病信息
+- 传染性疾病相关信息
+- 治疗费用信息
+请告诉我您具体想查询什么内容，我会为您生成相应的Cypher查询语句。
+2025-12-05 16:09:07,817 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:09:24,082 - services.graph_service - INFO - 查询解释: 看起来您发送的内容并不是一个真正的Cypher查询语句，而更像是一个**提示或说明**，用于引导用户如何提出关于医疗知识图谱的问题。
+
+让我为您解释一下这个“查询”的**结构和目的**：
+
+---
+
+### **这个“查询”在做什么？**
+1. **识别用户意图**：它首先检测到用户可能发送了一个无效或不完整的查询请求。
+2. **提供引导**：它没有直接报错，而是友好地列出了**用户可以询问的常见医疗问题类型**。
+3. **生成定制查询**：它的最终目的是根据用户的具体问题，**动态生成对应的Cypher查询**来从知识图谱中检索信息。
+
+---
+
+### **举例说明：**
+如果用户问：**“糖尿病的症状有哪些？”**
+
+系统可能会生成类似这样的Cypher查询：
+```cypher
+MATCH (d:Disease {name: '糖尿病'})-[:HAS_SYMPTOM]->(s:Symptom)
+RETURN s.name AS 症状
+```
+
+---
+
+### **为什么这样设计？**
+- **用户友好**：大多数用户不熟悉Cypher语法，直接让用户写查询不现实。
+- **结构化数据**：医疗知识图谱通常有固定的节点类型（如`Disease`、`Drug`、`Symptom`）和关系（如`HAS_SYMPTOM`、`TREATS`）。
+- **提高效率**：通过模板化常见问题，可以快速生成准确查询。
+
+---
+
+### **您可以这样使用：**
+直接告诉它您想了解的内容，例如：
+- “我想知道高血压的推荐药物”
+- “肺癌应该去哪个科室检查？”
+- “阿司匹林是哪个公司生产的？”
+
+系统会根据您的问题，自动构建Cypher查询并在图谱中查找答案。
+
+---
+
+**简单来说**：这不是一个查询，而是一个“查询生成器”的使用说明。您只需要用自然语言提问，它会帮您转换成专业的图谱查询。
+2025-12-05 16:09:24,083 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:09:24,091 - services.graph_service - INFO - 收到验证查询请求: 看起来您发送的内容不是有效的查询请求。如果您想查询医疗知识图谱中的信息，请告诉我您想了解什么，例如：
+- 某种疾病的症状、治疗方法或推荐药物
+- 某种药物的生产厂商
+- 疾病的饮食建议（能吃、不能吃、推荐吃的食物）
+- 疾病的检查项目或所属科室
+- 医保覆盖的疾病信息
+- 传染性疾病相关信息
+- 治疗费用信息
+请告诉我您具体想查询什么内容，我会为您生成相应的Cypher查询语句。
+2025-12-05 16:09:24,092 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:09:24,097 - services.graph_service - INFO - 收到执行查询请求: 看起来您发送的内容不是有效的查询请求。如果您想查询医疗知识图谱中的信息，请告诉我您想了解什么，例如：
+- 某种疾病的症状、治疗方法或推荐药物
+- 某种药物的生产厂商
+- 疾病的饮食建议（能吃、不能吃、推荐吃的食物）
+- 疾病的检查项目或所属科室
+- 医保覆盖的疾病信息
+- 传染性疾病相关信息
+- 治疗费用信息
+请告诉我您具体想查询什么内容，我会为您生成相应的Cypher查询语句。
+2025-12-05 16:09:24,098 - services.graph_service - INFO - 执行 Cypher 查询: 看起来您发送的内容不是有效的查询请求。如果您想查询医疗知识图谱中的信息，请告诉我您想了解什么，例如：
+- 某种疾病的症状、治疗方法或推荐药物
+- 某种药物的生产厂商
+- 疾病的饮食建议（能吃、不能吃、推荐吃的食物）
+- 疾病的检查项目或所属科室
+- 医保覆盖的疾病信息
+- 传染性疾病相关信息
+- 治疗费用信息
+请告诉我您具体想查询什么内容，我会为您生成相应的Cypher查询语句。
+2025-12-05 16:09:24,126 - services.graph_service - ERROR - 查询执行失败，耗时: 0.028秒，错误: {code: Neo.ClientError.Statement.SyntaxError} {message: Invalid input '看起来您发送的内容不是有效的查询请求': expected 'FOREACH', 'ALTER', 'ORDER BY', 'CALL', 'USING PERIODIC COMMIT', 'CREATE', 'LOAD CSV', 'START DATABASE', 'STOP DATABASE', 'DEALLOCATE', 'DELETE', 'DENY', 'DETACH', 'DROP', 'DRYRUN', 'FINISH', 'GRANT', 'INSERT', 'LIMIT', 'MATCH', 'MERGE', 'NODETACH', 'OFFSET', 'OPTIONAL', 'REALLOCATE', 'REMOVE', 'RENAME', 'RETURN', 'REVOKE', 'ENABLE SERVER', 'SET', 'SHOW', 'SKIP', 'TERMINATE', 'UNWIND', 'USE' or 'WITH' (line 1, column 1 (offset: 0))
+"看起来您发送的内容不是有效的查询请求。如果您想查询医疗知识图谱中的信息，请告诉我您想了解什么，例如："
+ ^}
+2025-12-05 16:09:36,356 - services.graph_service - INFO - 收到生成查询请求: m
+2025-12-05 16:09:36,448 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:09:43,368 - services.graph_service - INFO - 生成的 Cypher 查询: 看起来您没有提供具体的自然语言查询。请告诉我您想要查询什么，例如：
+1. 查找某种疾病的症状
+2. 查找某种疾病的推荐药物
+3. 查找某种疾病的饮食建议
+4. 查找某种疾病的检查项目
+5. 查找某种疾病的科室归属
+6. 查找某种疾病的并发症
+7. 查找药品的生产厂商
+8. 查找疾病的所有信息
+9. 查找医保覆盖的疾病
+10. 查找传染性疾病
+11. 查找特定治疗方式的疾病
+12. 查找特定分类的疾病
+或者您可以描述任何其他与医疗健康相关的查询需求，我会为您生成相应的Cypher查询。
+2025-12-05 16:09:43,423 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:10:02,130 - services.graph_service - INFO - 查询解释: 看起来您还没有提供具体的Cypher查询语句让我解释。您上面列出的是**可能的查询需求类型**，而不是一个实际的Cypher代码。
+
+为了让我能帮您解释，您需要提供一段**具体的Cypher查询代码**。
+
+---
+
+### 举个例子：
+如果您给我这样一段Cypher查询：
+
+```cypher
+MATCH (d:Disease {name: '糖尿病'})-[:HAS_SYMPTOM]->(s:Symptom)
+RETURN d.name AS 疾病, s.name AS 症状
+```
+
+我可以为您这样解释：
+
+**这段查询的意思是：**
+1.  **`MATCH`**： 在图中查找匹配以下模式的数据。
+2.  **`(d:Disease {name: '糖尿病'})`**： 找到一个标签为 `Disease`（疾病）的节点，并且这个节点的 `name`（名称）属性等于“糖尿病”。我们给这个节点起了一个别名 `d`，方便后面引用。
+3.  **`-[:HAS_SYMPTOM]->`**： 沿着一个类型为 `HAS_SYMPTOM`（拥有症状）的关系箭头方向查找。
+4.  **`(s:Symptom)`**： 找到与疾病节点 `d` 通过该关系相连的、标签为 `Symptom`（症状）的节点。我们给这个节点起了一个别名 `s`。
+5.  **`RETURN d.name AS 疾病, s.name AS 症状`**： 最后，返回查询结果，显示疾病 `d` 的名称和症状 `s` 的名称，并为这两列数据分别设置易于理解的列标题“疾病”和“症状”。
+
+**用一句话总结就是：** **“在知识图谱中，查找‘糖尿病’这个疾病所对应的所有症状，并把疾病名和症状名都列出来。”**
+
+---
+
+### 现在，请您：
+**将您想让我解释的那段Cypher查询代码粘贴给我**，我会用同样清晰、分步的方式为您解读它的每一部分在做什么，以及整个查询的最终目的。
+
+您可以从您列出的那些需求（如查找症状、药物等）所对应的实际Cypher代码中，选一段发给我。
+2025-12-05 16:10:02,132 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:10:02,141 - services.graph_service - INFO - 收到验证查询请求: 看起来您没有提供具体的自然语言查询。请告诉我您想要查询什么，例如：
+1. 查找某种疾病的症状
+2. 查找某种疾病的推荐药物
+3. 查找某种疾病的饮食建议
+4. 查找某种疾病的检查项目
+5. 查找某种疾病的科室归属
+6. 查找某种疾病的并发症
+7. 查找药品的生产厂商
+8. 查找疾病的所有信息
+9. 查找医保覆盖的疾病
+10. 查找传染性疾病
+11. 查找特定治疗方式的疾病
+12. 查找特定分类的疾病
+或者您可以描述任何其他与医疗健康相关的查询需求，我会为您生成相应的Cypher查询。
+2025-12-05 16:10:02,142 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:10:02,146 - services.graph_service - INFO - 收到执行查询请求: 看起来您没有提供具体的自然语言查询。请告诉我您想要查询什么，例如：
+1. 查找某种疾病的症状
+2. 查找某种疾病的推荐药物
+3. 查找某种疾病的饮食建议
+4. 查找某种疾病的检查项目
+5. 查找某种疾病的科室归属
+6. 查找某种疾病的并发症
+7. 查找药品的生产厂商
+8. 查找疾病的所有信息
+9. 查找医保覆盖的疾病
+10. 查找传染性疾病
+11. 查找特定治疗方式的疾病
+12. 查找特定分类的疾病
+或者您可以描述任何其他与医疗健康相关的查询需求，我会为您生成相应的Cypher查询。
+2025-12-05 16:10:02,147 - services.graph_service - INFO - 执行 Cypher 查询: 看起来您没有提供具体的自然语言查询。请告诉我您想要查询什么，例如：
+1. 查找某种疾病的症状
+2. 查找某种疾病的推荐药物
+3. 查找某种疾病的饮食建议
+4. 查找某种疾病的检查项目
+5. 查找某种疾病的科室归属
+6. 查找某种疾病的并发症
+7. 查找药品的生产厂商
+8. 查找疾病的所有信息
+9. 查找医保覆盖的疾病
+10. 查找传染性疾病
+11. 查找特定治疗方式的疾病
+12. 查找特定分类的疾病
+或者您可以描述任何其他与医疗健康相关的查询需求，我会为您生成相应的Cypher查询。
+2025-12-05 16:10:02,179 - services.graph_service - ERROR - 查询执行失败，耗时: 0.033秒，错误: {code: Neo.ClientError.Statement.SyntaxError} {message: Invalid input '看起来您没有提供具体的自然语言查询': expected 'FOREACH', 'ALTER', 'ORDER BY', 'CALL', 'USING PERIODIC COMMIT', 'CREATE', 'LOAD CSV', 'START DATABASE', 'STOP DATABASE', 'DEALLOCATE', 'DELETE', 'DENY', 'DETACH', 'DROP', 'DRYRUN', 'FINISH', 'GRANT', 'INSERT', 'LIMIT', 'MATCH', 'MERGE', 'NODETACH', 'OFFSET', 'OPTIONAL', 'REALLOCATE', 'REMOVE', 'RENAME', 'RETURN', 'REVOKE', 'ENABLE SERVER', 'SET', 'SHOW', 'SKIP', 'TERMINATE', 'UNWIND', 'USE' or 'WITH' (line 1, column 1 (offset: 0))
+"看起来您没有提供具体的自然语言查询。请告诉我您想要查询什么，例如："
+ ^}
+2025-12-05 16:15:39,823 - services.graph_service - INFO - 收到生成查询请求: 高血压患者饮食要注意什么？
+2025-12-05 16:15:39,976 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:15:42,772 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 16:15:42,818 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:15:56,030 - services.graph_service - INFO - 查询解释: 这个Cypher查询用于在Neo4j图数据库中查找与"高血压"相关的食物信息。让我详细解释一下：
+
+## 查询目的
+查找与"高血压"疾病相关的所有食物，并显示它们之间的关系类型和食物名称。
+
+## 各部分解释：
+
+1. **`MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food)`**
+   - 匹配疾病节点和食物节点之间的三种关系：
+     - `not_eat`：不能吃的食物
+     - `do_eat`：可以吃的食物  
+     - `recommand_eat`：推荐吃的食物
+   - `d`：代表疾病节点（标签为Disease）
+   - `f`：代表食物节点（标签为Food）
+   - `r`：代表关系变量
+
+2. **`WHERE d.name='高血压'`**
+   - 筛选条件：只查找名称为"高血压"的疾病节点
+
+3. **`RETURN type(r) AS relationship_type, f.name AS food_name`**
+   - 返回结果包含两列：
+     - `relationship_type`：关系类型（不能吃/可以吃/推荐吃）
+     - `food_name`：食物名称
+
+## 查询结果示例：
+```
+relationship_type | food_name
+-----------------|-----------
+not_eat          | 咸菜
+do_eat           | 苹果
+recommand_eat    | 芹菜
+```
+
+## 简单来说：
+这个查询就是**找出所有与高血压相关的食物，并告诉我们每种食物是高血压患者不能吃、可以吃还是推荐吃的**。
+2025-12-05 16:15:56,031 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:15:56,044 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 16:15:56,044 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:15:56,050 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 16:15:56,050 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 16:15:56,068 - services.graph_service - INFO - 查询执行成功，耗时: 0.017秒，返回 22 条记录
+2025-12-05 16:15:56,068 - services.graph_service - INFO - 查询执行完成，返回 22 条记录
+2025-12-05 16:17:36,508 - services.graph_service - INFO - 收到生成查询请求: 高血压患者饮食要注意什么？
+2025-12-05 16:17:36,661 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:17:39,671 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 16:17:39,761 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:17:53,492 - services.graph_service - INFO - 查询解释: 这个Cypher查询用于在Neo4j图数据库中查找与"高血压"相关的食物信息。让我详细解释一下：
+
+## 查询目的
+查找所有与"高血压"疾病相关的食物，并显示它们之间的关系类型和食物名称。
+
+## 各部分解释：
+
+1. **`MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food)`**
+   - 匹配疾病节点和食物节点之间的三种关系：
+     - `not_eat`：不应该吃的食物
+     - `do_eat`：可以吃的食物  
+     - `recommand_eat`：推荐吃的食物
+   - `d`：代表疾病节点（标签为"Disease"）
+   - `f`：代表食物节点（标签为"Food"）
+   - `r`：代表它们之间的关系
+
+2. **`WHERE d.name='高血压'`**
+   - 筛选条件：只查找名称为"高血压"的疾病
+
+3. **`RETURN type(r) AS relationship_type, f.name AS food_name`**
+   - 返回结果包含两列：
+     - `relationship_type`：关系类型（not_eat/do_eat/recommand_eat）
+     - `food_name`：食物名称
+
+## 查询结果示例：
+```
+relationship_type | food_name
+-----------------|-----------
+not_eat          | 咸菜
+do_eat           | 苹果
+recommand_eat    | 芹菜
+```
+
+## 简单来说：
+这个查询就是**找出所有与高血压相关的食物，并告诉我们每种食物是"不能吃"、"可以吃"还是"推荐吃"的**。
+2025-12-05 16:17:53,494 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:17:53,504 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 16:17:53,505 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:17:53,510 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 16:17:53,510 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 16:17:53,529 - services.graph_service - INFO - 查询执行成功，耗时: 0.019秒，返回 22 条记录
+2025-12-05 16:17:53,537 - services.graph_service - INFO - 查询执行完成，返回 22 条记录
+2025-12-05 16:18:17,924 - services.graph_service - INFO - 收到生成查询请求: 我想吃食物
+2025-12-05 16:18:18,075 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:18:25,451 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (f:Food) RETURN f.name AS food_name
+2025-12-05 16:18:25,496 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:18:34,850 - services.graph_service - INFO - 查询解释: 这个Cypher查询的作用是从Neo4j图数据库中查找并返回所有食物的名称。
+
+让我详细解释一下：
+
+**MATCH (f:Food)** 
+- `MATCH` 是查找模式的关键字
+- `(f:Food)` 表示查找所有带有"Food"标签的节点
+- `f` 是一个变量名，代表找到的每个Food节点
+
+**RETURN f.name AS food_name**
+- `RETURN` 指定要返回什么数据
+- `f.name` 表示返回每个Food节点的"name"属性
+- `AS food_name` 给返回的结果列起一个别名"food_name"
+
+**简单来说，这个查询的意思是：**
+"在数据库中找出所有标记为Food的节点，然后返回这些节点的名称，并把结果列命名为food_name。"
+
+**举个例子：**
+如果你的数据库中有以下Food节点：
+- 披萨 (name: "Pizza")
+- 汉堡 (name: "Burger")
+- 沙拉 (name: "Salad")
+
+那么这个查询会返回：
+```
+food_name
+---------
+Pizza
+Burger
+Salad
+```
+2025-12-05 16:18:34,851 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:18:34,861 - services.graph_service - INFO - 收到验证查询请求: MATCH (f:Food) RETURN f.name AS food_name
+2025-12-05 16:18:34,862 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:18:34,866 - services.graph_service - INFO - 收到执行查询请求: MATCH (f:Food) RETURN f.name AS food_name
+2025-12-05 16:18:34,866 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (f:Food) RETURN f.name AS food_name
+2025-12-05 16:18:34,947 - services.graph_service - INFO - 查询执行成功，耗时: 0.081秒，返回 2113 条记录
+2025-12-05 16:18:34,947 - services.graph_service - INFO - 查询执行完成，返回 2113 条记录
+2025-12-05 16:23:30,885 - services.graph_service - INFO - 收到生成查询请求: 高血压患者饮食要注意什么？
+2025-12-05 16:23:31,056 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:23:34,238 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 16:23:34,304 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:23:50,762 - services.graph_service - INFO - 查询解释: 这个Cypher查询用于在Neo4j图数据库中查找与"高血压"相关的食物信息。让我详细解释一下：
+
+## 查询目的
+查找所有与"高血压"疾病相关的食物，并显示它们之间的关系类型和食物名称。
+
+## 各部分解释：
+
+1. **`MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food)`**
+   - 匹配模式：查找疾病节点和食物节点之间的连接
+   - `(d:Disease)`：标签为"Disease"的节点，别名为`d`
+   - `(f:Food)`：标签为"Food"的节点，别名为`f`
+   - `[r:not_eat|do_eat|recommand_eat]`：三种可能的关系类型：
+     - `not_eat`：不能吃的食物
+     - `do_eat`：可以吃的食物  
+     - `recommand_eat`：推荐吃的食物
+   - `-`：表示无方向的关系（可以是从疾病到食物，也可以是从食物到疾病）
+
+2. **`WHERE d.name='高血压'`**
+   - 筛选条件：只选择名称为"高血压"的疾病节点
+
+3. **`RETURN type(r) AS relationship_type, f.name AS food_name`**
+   - 返回结果：
+     - `type(r)`：关系的类型（not_eat/do_eat/recommand_eat），别名为relationship_type
+     - `f.name`：食物的名称，别名为food_name
+
+## 查询结果示例：
+```
+relationship_type | food_name
+-----------------|-----------
+not_eat          | 咸菜
+do_eat           | 苹果
+recommand_eat    | 芹菜
+```
+
+## 简单来说：
+这个查询的意思是："找出所有与高血压相关的食物，并告诉我每种食物是高血压患者不能吃的、可以吃的还是推荐吃的，同时显示食物的名称。"
+2025-12-05 16:23:50,765 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:23:50,775 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 16:23:50,776 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:23:50,781 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 16:23:50,781 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[r:not_eat|do_eat|recommand_eat]-(f:Food) 
+WHERE d.name='高血压' 
+RETURN type(r) AS relationship_type, f.name AS food_name
+2025-12-05 16:23:50,820 - services.graph_service - INFO - 查询执行成功，耗时: 0.038秒，返回 22 条记录
+2025-12-05 16:23:50,820 - services.graph_service - INFO - 查询执行完成，返回 22 条记录
+2025-12-05 16:42:31,617 - services.graph_service - INFO - 收到生成查询请求: 我一直咳嗽两三周了，应该怎么治疗？
+2025-12-05 16:42:31,761 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:42:34,815 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE s.name CONTAINS '咳嗽' 
+RETURN d.name AS disease_name, d.cure_way AS treatment_method, d.cure_department AS department
+2025-12-05 16:42:34,860 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:42:47,352 - services.graph_service - INFO - 查询解释: 这个Cypher查询用于从Neo4j图数据库中查找与"咳嗽"相关的疾病信息。让我一步步解释：
+
+## 查询结构分析：
+
+1. **MATCH (d:Disease)-[:has_symptom]->(s:Symptom)**
+   - 匹配模式：查找所有标签为"Disease"的节点（用变量`d`表示）
+   - 这些疾病节点通过`has_symptom`关系连接到标签为"Symptom"的节点（用变量`s`表示）
+
+2. **WHERE s.name CONTAINS '咳嗽'**
+   - 筛选条件：只保留症状名称中包含"咳嗽"二字的症状节点
+   - 比如"咳嗽"、"干咳"、"咳嗽带痰"等都会被匹配
+
+3. **RETURN d.name AS disease_name, d.cure_way AS treatment_method, d.cure_department AS department**
+   - 返回结果：对于匹配到的疾病，返回三个信息：
+     - 疾病名称（重命名为`disease_name`）
+     - 治疗方法（重命名为`treatment_method`）
+     - 治疗科室（重命名为`department`）
+
+## 通俗理解：
+这个查询相当于在问："哪些疾病会有咳嗽的症状？这些疾病怎么治疗？应该去哪个科室看？"
+
+## 实际应用场景：
+- 医疗知识图谱查询
+- 症状自查系统
+- 智能分诊建议
+- 疾病信息检索
+
+查询结果会返回一个表格，包含三列：疾病名称、治疗方法和治疗科室，所有疾病都是与咳嗽症状相关的。
+2025-12-05 16:42:47,355 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:42:47,365 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE s.name CONTAINS '咳嗽' 
+RETURN d.name AS disease_name, d.cure_way AS treatment_method, d.cure_department AS department
+2025-12-05 16:42:47,365 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:42:47,371 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE s.name CONTAINS '咳嗽' 
+RETURN d.name AS disease_name, d.cure_way AS treatment_method, d.cure_department AS department
+2025-12-05 16:42:47,372 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE s.name CONTAINS '咳嗽' 
+RETURN d.name AS disease_name, d.cure_way AS treatment_method, d.cure_department AS department
+2025-12-05 16:42:47,465 - services.graph_service - INFO - 查询执行成功，耗时: 0.093秒，返回 46 条记录
+2025-12-05 16:42:47,465 - services.graph_service - INFO - 查询执行完成，返回 46 条记录
+2025-12-05 16:43:19,734 - services.graph_service - INFO - 收到生成查询请求: 那我应该去哪里进行治疗
+2025-12-05 16:43:19,837 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:43:23,351 - services.graph_service - INFO - 生成的 Cypher 查询: 我需要知道您具体指的是哪种疾病，才能查询对应的治疗科室。请告诉我您想查询哪种疾病的治疗科室？
+例如，您可以问：
+- "高血压应该去哪里治疗？"
+- "糖尿病应该去哪个科室？"
+如果您想查询特定疾病的治疗科室，请告诉我疾病名称，我会为您生成相应的Cypher查询。
+2025-12-05 16:43:23,404 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:43:38,858 - services.graph_service - INFO - 查询解释: 您提到的这段文字并不是一个Cypher查询，而是一个**用户提示或对话引导**，用于收集信息以便后续生成查询。
+
+让我为您解释一下它的作用：
+
+### 这段文字的核心目的：
+1. **收集必要信息**：为了在知识图谱（Neo4j数据库）中查询“某种疾病对应的治疗科室”，系统需要先知道具体的疾病名称。
+2. **提供查询示例**：通过例子（高血压、糖尿病）告诉用户应该如何提问。
+3. **引导用户输入**：最终目的是让用户说出疾病名称，以便系统生成类似这样的Cypher查询：
+
+### 可能生成的Cypher查询示例：
+如果用户说“高血压”，系统可能会生成：
+```cypher
+// 查询高血压对应的治疗科室
+MATCH (d:Disease {name: '高血压'})-[:TREATED_BY]->(dept:Department)
+RETURN d.name AS 疾病, dept.name AS 治疗科室
+```
+
+### 简单解释：
+- **`MATCH`**：在图中查找模式
+- **`(d:Disease {name: '高血压'})`**：找到标签为“Disease”（疾病）且名称为“高血压”的节点
+- **`-[:TREATED_BY]->`**：沿着“TREATED_BY”（由...治疗）关系查找
+- **`(dept:Department)`**：找到关联的“Department”（科室）节点
+- **`RETURN`**：返回疾病名称和科室名称
+
+### 总结：
+您提供的文本是一个**问题收集器**，不是查询本身。它的逻辑是：
+1. 先向用户询问疾病名称
+2. 根据用户回答生成具体的Cypher查询
+3. 在Neo4j中执行查询并返回结果
+
+您需要告诉我具体的疾病名称，我才能为您生成对应的Cypher查询代码。
+2025-12-05 16:43:38,859 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:43:38,868 - services.graph_service - INFO - 收到验证查询请求: 我需要知道您具体指的是哪种疾病，才能查询对应的治疗科室。请告诉我您想查询哪种疾病的治疗科室？
+例如，您可以问：
+- "高血压应该去哪里治疗？"
+- "糖尿病应该去哪个科室？"
+如果您想查询特定疾病的治疗科室，请告诉我疾病名称，我会为您生成相应的Cypher查询。
+2025-12-05 16:43:38,868 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:43:38,873 - services.graph_service - INFO - 收到执行查询请求: 我需要知道您具体指的是哪种疾病，才能查询对应的治疗科室。请告诉我您想查询哪种疾病的治疗科室？
+例如，您可以问：
+- "高血压应该去哪里治疗？"
+- "糖尿病应该去哪个科室？"
+如果您想查询特定疾病的治疗科室，请告诉我疾病名称，我会为您生成相应的Cypher查询。
+2025-12-05 16:43:38,874 - services.graph_service - INFO - 执行 Cypher 查询: 我需要知道您具体指的是哪种疾病，才能查询对应的治疗科室。请告诉我您想查询哪种疾病的治疗科室？
+例如，您可以问：
+- "高血压应该去哪里治疗？"
+- "糖尿病应该去哪个科室？"
+如果您想查询特定疾病的治疗科室，请告诉我疾病名称，我会为您生成相应的Cypher查询。
+2025-12-05 16:43:38,896 - services.graph_service - ERROR - 查询执行失败，耗时: 0.022秒，错误: {code: Neo.ClientError.Statement.SyntaxError} {message: Invalid input '我需要知道您具体指的是哪种疾病': expected 'FOREACH', 'ALTER', 'ORDER BY', 'CALL', 'USING PERIODIC COMMIT', 'CREATE', 'LOAD CSV', 'START DATABASE', 'STOP DATABASE', 'DEALLOCATE', 'DELETE', 'DENY', 'DETACH', 'DROP', 'DRYRUN', 'FINISH', 'GRANT', 'INSERT', 'LIMIT', 'MATCH', 'MERGE', 'NODETACH', 'OFFSET', 'OPTIONAL', 'REALLOCATE', 'REMOVE', 'RENAME', 'RETURN', 'REVOKE', 'ENABLE SERVER', 'SET', 'SHOW', 'SKIP', 'TERMINATE', 'UNWIND', 'USE' or 'WITH' (line 1, column 1 (offset: 0))
+"我需要知道您具体指的是哪种疾病，才能查询对应的治疗科室。请告诉我您想查询哪种疾病的治疗科室？"
+ ^}
+2025-12-05 16:43:53,399 - services.graph_service - INFO - Neo4j 连接已关闭
+2025-12-05 16:44:17,808 - services.graph_service - INFO - 成功连接到 Neo4j: neo4j://0.0.0.0:7687
+2025-12-05 16:45:14,903 - services.graph_service - INFO - 收到生成查询请求: 肺炎我一直咳嗽两三周了，应该怎么治疗？
+2025-12-05 16:45:15,239 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:45:17,929 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肺炎' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 16:45:17,970 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:45:31,255 - services.graph_service - INFO - 查询解释: 这个Cypher查询用于从Neo4j图数据库中查找特定疾病及其对应的治疗方法。让我详细解释一下：
+
+## 查询功能
+查找名为"肺炎"的疾病，并返回该疾病的所有治疗方法。
+
+## 各部分解释：
+
+1. **`MATCH (d:Disease)-[:treated_by]->(t:Treatment)`**
+   - 匹配模式：查找所有标签为"Disease"的节点（用变量`d`表示），这些节点通过`treated_by`关系指向标签为"Treatment"的节点（用变量`t`表示）
+   - 这表示"疾病通过treated_by关系连接到治疗方法"
+
+2. **`WHERE d.name = '肺炎'`**
+   - 筛选条件：只选择名称为"肺炎"的疾病节点
+
+3. **`RETURN d.name AS disease_name, COLLECT(t.name) AS treatments`**
+   - 返回结果：
+     - `d.name AS disease_name`：疾病名称（肺炎）
+     - `COLLECT(t.name) AS treatments`：将所有匹配的治疗方法名称收集到一个列表中
+
+## 查询结果示例：
+```
+╔══════════════╦══════════════════════════════════════╗
+║ disease_name ║ treatments                           ║
+╠══════════════╬══════════════════════════════════════╣
+║ 肺炎         ║ ["抗生素治疗", "氧疗", "对症治疗"]   ║
+╚══════════════╩══════════════════════════════════════╝
+```
+
+## 简单来说：
+这个查询相当于问："肺炎有哪些治疗方法？" 然后把所有治疗方法整理成一个列表返回。
+2025-12-05 16:45:31,258 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:45:31,272 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肺炎' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 16:45:31,273 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:45:31,280 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肺炎' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 16:45:31,280 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肺炎' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 16:45:31,349 - services.graph_service - INFO - 查询执行成功，耗时: 0.069秒，返回 1 条记录
+2025-12-05 16:45:31,350 - services.graph_service - INFO - 查询执行完成，返回 1 条记录
+2025-12-05 16:46:01,910 - services.graph_service - INFO - 收到生成查询请求: 肺炎，我该去哪里治疗
+2025-12-05 16:46:02,130 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:46:04,590 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[:belongs_to]->(dept:Department) 
+WHERE d.name = '肺炎' 
+RETURN d.name AS disease_name, dept.name AS department_name
+2025-12-05 16:46:04,645 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:46:14,348 - services.graph_service - INFO - 查询解释: 这个Cypher查询的作用是：**查找名为"肺炎"的疾病属于哪个科室**。
+
+让我一步步解释：
+
+1. **`MATCH (d:Disease)-[:belongs_to]->(dept:Department)`**
+   - 匹配图数据库中的模式：一个标签为"Disease"的节点（用变量`d`表示），通过"belongs_to"关系指向一个标签为"Department"的节点（用变量`dept`表示）
+   - 这表示"疾病属于科室"的关系
+
+2. **`WHERE d.name = '肺炎'`**
+   - 筛选条件：只选择疾病名称等于"肺炎"的记录
+
+3. **`RETURN d.name AS disease_name, dept.name AS department_name`**
+   - 返回结果：疾病名称（重命名为disease_name）和对应的科室名称（重命名为department_name）
+
+**简单来说**：这个查询就像在问"肺炎这个病归哪个科室管？"，然后返回科室名称。
+
+**可能的查询结果示例**：
+```
+disease_name | department_name
+-------------|----------------
+肺炎         | 呼吸内科
+```
+
+这个查询在医疗知识图谱中很常见，用于建立疾病与科室的对应关系。
+2025-12-05 16:46:14,350 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:46:14,358 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[:belongs_to]->(dept:Department) 
+WHERE d.name = '肺炎' 
+RETURN d.name AS disease_name, dept.name AS department_name
+2025-12-05 16:46:14,359 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:46:14,363 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[:belongs_to]->(dept:Department) 
+WHERE d.name = '肺炎' 
+RETURN d.name AS disease_name, dept.name AS department_name
+2025-12-05 16:46:14,363 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[:belongs_to]->(dept:Department) 
+WHERE d.name = '肺炎' 
+RETURN d.name AS disease_name, dept.name AS department_name
+2025-12-05 16:46:14,427 - services.graph_service - INFO - 查询执行成功，耗时: 0.064秒，返回 1 条记录
+2025-12-05 16:46:14,427 - services.graph_service - INFO - 查询执行完成，返回 1 条记录
+2025-12-05 16:50:14,331 - services.graph_service - INFO - 收到生成查询请求: 肺炎，这个治疗费用大概是多少
+2025-12-05 16:50:14,506 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:50:16,321 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease) 
+WHERE d.name = '肺炎' 
+RETURN d.name, d.cost_money
+2025-12-05 16:50:16,364 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:50:26,658 - services.graph_service - INFO - 查询解释: 这个Cypher查询是用来从Neo4j图数据库中查找特定疾病信息的。让我一步步解释：
+
+**查询目的：**
+查找名为"肺炎"的疾病，并返回它的名称和治疗费用信息。
+
+**具体解释：**
+
+1. **`MATCH (d:Disease)`**
+   - 匹配数据库中所有标签为"Disease"的节点
+   - 给这些节点起一个别名"d"（方便后续引用）
+
+2. **`WHERE d.name = '肺炎'`**
+   - 筛选条件：只选择那些name属性等于"肺炎"的疾病节点
+   - 相当于说"我只关心名为肺炎的疾病"
+
+3. **`RETURN d.name, d.cost_money`**
+   - 返回结果：只显示疾病名称和治疗费用这两个属性
+   - 不返回节点的其他属性
+
+**简单来说：**
+这个查询就像是在问数据库："请告诉我肺炎这个病的名称和治疗费用是多少？"
+
+**返回结果示例：**
+可能会返回类似这样的数据：
+```
+肺炎, 5000
+```
+表示肺炎的治疗费用是5000（单位取决于数据库中的设定）。
+
+这是一个很基础的查询，用于从图数据库中获取特定节点的属性信息。
+2025-12-05 16:50:26,659 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:50:26,670 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease) 
+WHERE d.name = '肺炎' 
+RETURN d.name, d.cost_money
+2025-12-05 16:50:26,670 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:50:26,674 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease) 
+WHERE d.name = '肺炎' 
+RETURN d.name, d.cost_money
+2025-12-05 16:50:26,674 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease) 
+WHERE d.name = '肺炎' 
+RETURN d.name, d.cost_money
+2025-12-05 16:50:26,740 - services.graph_service - INFO - 查询执行成功，耗时: 0.066秒，返回 1 条记录
+2025-12-05 16:50:26,741 - services.graph_service - INFO - 查询执行完成，返回 1 条记录
+2025-12-05 16:56:45,654 - services.graph_service - INFO - 收到生成查询请求: 肩痛应该怎么治疗？
+2025-12-05 16:56:45,801 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:56:48,466 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肩痛' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 16:56:48,512 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:57:00,180 - services.graph_service - INFO - 查询解释: 这个Cypher查询是用来从Neo4j图数据库中查找与"肩痛"相关的治疗方法的。让我一步步解释：
+
+**查询目的：**
+找到名为"肩痛"的疾病，并返回所有治疗这种疾病的方法。
+
+**查询结构解析：**
+
+1. **`MATCH (d:Disease)-[:treated_by]->(t:Treatment)`**
+   - 匹配图数据库中的模式：一个标签为"Disease"的节点（用变量`d`表示），通过"treated_by"关系连接到标签为"Treatment"的节点（用变量`t`表示）
+   - 这表示"疾病被治疗方法治疗"的关系
+
+2. **`WHERE d.name = '肩痛'`**
+   - 筛选条件：只选择名称为"肩痛"的疾病节点
+
+3. **`RETURN d.name AS disease_name, COLLECT(t.name) AS treatments`**
+   - 返回结果：疾病名称（重命名为disease_name）
+   - 使用`COLLECT()`函数将所有匹配的治疗方法名称收集到一个列表中（重命名为treatments）
+
+**查询结果：**
+会返回一行数据，包含两个字段：
+- `disease_name`: "肩痛"
+- `treatments`: 一个包含所有治疗"肩痛"的方法名称的数组
+
+**简单来说：**
+这个查询相当于问："肩痛有哪些治疗方法？" 然后把所有找到的治疗方法整理成一个列表返回。
+2025-12-05 16:57:00,181 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:57:00,191 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肩痛' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 16:57:00,191 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:57:00,197 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肩痛' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 16:57:00,198 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肩痛' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 16:57:00,211 - services.graph_service - INFO - 查询执行成功，耗时: 0.013秒，返回 0 条记录
+2025-12-05 16:57:00,213 - services.graph_service - INFO - 查询执行完成，返回 0 条记录
+2025-12-05 16:57:52,643 - services.graph_service - INFO - Neo4j 连接已关闭
+2025-12-05 16:58:00,858 - services.graph_service - INFO - 成功连接到 Neo4j: neo4j://0.0.0.0:7687
+2025-12-05 16:59:06,590 - services.graph_service - INFO - 收到生成查询请求: 肩痛应该怎么治疗？
+2025-12-05 16:59:07,021 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:59:09,427 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肩痛' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 16:59:09,482 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 16:59:26,063 - services.graph_service - INFO - 查询解释: 这个Cypher查询是用来从Neo4j图数据库中查找与"肩痛"相关的治疗方法的。让我一步步解释：
+
+## 查询的作用：
+查找名为"肩痛"的疾病，并返回该疾病的所有治疗方法。
+
+## 各部分解释：
+
+1. **`MATCH (d:Disease)-[:treated_by]->(t:Treatment)`**
+   - 匹配图数据库中的模式
+   - `d:Disease`：查找标签为"Disease"的节点，给它们起别名"d"
+   - `t:Treatment`：查找标签为"Treatment"的节点，给它们起别名"t"
+   - `-[:treated_by]->`：查找从疾病节点到治疗节点之间类型为"treated_by"的关系
+   - 整体意思是：找到所有通过"treated_by"关系连接到治疗方法的疾病
+
+2. **`WHERE d.name = '肩痛'`**
+   - 筛选条件：只选择疾病名称(name属性)为"肩痛"的疾病节点
+
+3. **`RETURN d.name AS disease_name, COLLECT(t.name) AS treatments`**
+   - 返回结果：
+     - `d.name AS disease_name`：疾病名称，重命名为"disease_name"
+     - `COLLECT(t.name) AS treatments`：将所有匹配的治疗方法的名称收集到一个列表中，重命名为"treatments"
+
+## 简单来说：
+这个查询的意思是："给我找一下叫'肩痛'的这个病，然后把所有能治这个病的方法都列出来，放在一个列表里。"
+
+## 返回结果示例：
+可能会返回这样的结果：
+```
+╔══════════════╦══════════════════════════════════════╗
+║ disease_name ║ treatments                           ║
+╠══════════════╬══════════════════════════════════════╣
+║ 肩痛         ║ ["物理治疗", "药物治疗", "手术治疗"] ║
+╚══════════════╩══════════════════════════════════════╝
+```
+
+这个查询在医疗知识图谱、疾病治疗推荐系统等场景中很常见。
+2025-12-05 16:59:26,065 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:59:26,080 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肩痛' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 16:59:26,080 - services.graph_service - INFO - 查询验证通过
+2025-12-05 16:59:26,089 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肩痛' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 16:59:26,089 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[:treated_by]->(t:Treatment) 
+WHERE d.name = '肩痛' 
+RETURN d.name AS disease_name, COLLECT(t.name) AS treatments
+2025-12-05 16:59:26,129 - services.graph_service - INFO - 查询执行成功，耗时: 0.039秒，返回 0 条记录
+2025-12-05 16:59:26,129 - services.graph_service - INFO - 查询执行完成，返回 0 条记录
+2025-12-05 17:00:08,991 - services.graph_service - INFO - 收到生成查询请求: 这样可能得了什么病
+2025-12-05 17:00:09,106 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 17:00:19,556 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (s:Symptom)<-[:has_symptom]-(d:Disease)
+WHERE s.name CONTAINS '症状关键词'
+RETURN d.name AS disease_name, 
+       COLLECT(DISTINCT s.name) AS symptoms
+LIMIT 10
+2025-12-05 17:00:19,599 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 17:00:35,667 - services.graph_service - INFO - 查询解释: 这个Cypher查询用于在医疗知识图谱中查找与特定症状相关的疾病信息。让我详细解释一下：
+
+## 查询目的
+查找包含特定症状关键词的疾病，并列出每个疾病的所有相关症状。
+
+## 查询分解
+
+### 1. **MATCH (s:Symptom)<-[:has_symptom]-(d:Disease)**
+- 匹配图数据库中的节点和关系
+- `(s:Symptom)`：查找标签为"Symptom"的节点（症状节点）
+- `(d:Disease)`：查找标签为"Disease"的节点（疾病节点）
+- `<-[:has_symptom]-`：查找从疾病指向症状的"has_symptom"关系
+- 意思是：找到所有有症状的疾病
+
+### 2. **WHERE s.name CONTAINS '症状关键词'**
+- 筛选条件：只选择症状名称中包含"症状关键词"的症状
+- 比如：如果'症状关键词'是"头痛"，就会匹配"剧烈头痛"、"持续性头痛"等
+
+### 3. **RETURN d.name AS disease_name, COLLECT(DISTINCT s.name) AS symptoms**
+- 返回结果：
+  - `disease_name`：疾病名称
+  - `symptoms`：该疾病的所有相关症状列表（使用COLLECT函数聚合）
+  - `DISTINCT`确保症状不重复
+
+### 4. **LIMIT 10**
+- 限制返回结果数量，最多返回10条记录
+
+## 实际应用示例
+假设你想查找与"发热"相关的疾病：
+- 会找到所有有发热症状的疾病
+- 对每个疾病，列出它所有的症状
+- 比如可能返回：流感（症状：发热、咳嗽、头痛...）
+
+## 结果格式
+返回的数据类似：
+```
+disease_name | symptoms
+-------------|----------------------------
+流感         | [发热, 咳嗽, 头痛, 乏力]
+肺炎         | [发热, 咳嗽, 胸痛, 呼吸困难]
+```
+
+这个查询在医疗诊断辅助、疾病研究等场景中很有用。
+2025-12-05 17:00:35,670 - services.graph_service - INFO - 查询验证通过
+2025-12-05 17:00:35,698 - services.graph_service - INFO - 收到验证查询请求: MATCH (s:Symptom)<-[:has_symptom]-(d:Disease)
+WHERE s.name CONTAINS '症状关键词'
+RETURN d.name AS disease_name, 
+       COLLECT(DISTINCT s.name) AS symptoms
+LIMIT 10
+2025-12-05 17:00:35,699 - services.graph_service - INFO - 查询验证通过
+2025-12-05 17:00:35,708 - services.graph_service - INFO - 收到执行查询请求: MATCH (s:Symptom)<-[:has_symptom]-(d:Disease)
+WHERE s.name CONTAINS '症状关键词'
+RETURN d.name AS disease_name, 
+       COLLECT(DISTINCT s.name) AS symptoms
+LIMIT 10
+2025-12-05 17:00:35,714 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (s:Symptom)<-[:has_symptom]-(d:Disease)
+WHERE s.name CONTAINS '症状关键词'
+RETURN d.name AS disease_name, 
+       COLLECT(DISTINCT s.name) AS symptoms
+LIMIT 10
+2025-12-05 17:00:35,862 - services.graph_service - INFO - 查询执行成功，耗时: 0.147秒，返回 0 条记录
+2025-12-05 17:00:35,863 - services.graph_service - INFO - 查询执行完成，返回 0 条记录
+2025-12-05 17:03:56,892 - services.graph_service - INFO - Neo4j 连接已关闭
+2025-12-05 17:06:43,166 - services.graph_service - INFO - 成功连接到 Neo4j: neo4j://0.0.0.0:7687
+2025-12-05 17:07:04,927 - services.graph_service - INFO - 收到生成查询请求: 感冒了有什么症状？
+2025-12-05 17:07:05,270 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 17:07:07,591 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE d.name = '感冒' 
+RETURN s.name
+2025-12-05 17:07:07,642 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 17:07:20,970 - services.graph_service - INFO - 查询解释: 这个Cypher查询的作用是**查找与"感冒"相关的所有症状**。
+
+让我详细解释一下：
+
+## 查询结构解析：
+
+1. **`MATCH (d:Disease)-[:has_symptom]->(s:Symptom)`**
+   - 匹配模式：查找所有标签为"Disease"的节点（用`d`表示），这些节点通过"has_symptom"关系指向标签为"Symptom"的节点（用`s`表示）
+   - 这相当于说："找到所有疾病及其对应的症状"
+
+2. **`WHERE d.name = '感冒'`**
+   - 筛选条件：只选择疾病名称为"感冒"的疾病节点
+   - 这相当于说："只关注感冒这种疾病"
+
+3. **`RETURN s.name`**
+   - 返回结果：只返回症状节点的名称
+   - 这相当于说："列出所有症状的名称"
+
+## 通俗理解：
+这个查询就像在问："感冒有哪些症状？"
+
+## 实际应用场景：
+假设你有一个医疗知识图谱，其中：
+- 有"感冒"这个疾病节点
+- 有"发烧"、"咳嗽"、"流鼻涕"等症状节点
+- "感冒"节点通过"has_symptom"关系连接到这些症状节点
+
+查询结果会返回类似：
+```
+["发烧", "咳嗽", "流鼻涕", "头痛", ...]
+```
+
+## 类似SQL的对比：
+如果用SQL来表示，这类似于：
+```sql
+SELECT symptom.name 
+FROM diseases d
+JOIN disease_symptoms ds ON d.id = ds.disease_id
+JOIN symptoms s ON ds.symptom_id = s.id
+WHERE d.name = '感冒'
+```
+
+简单来说，这个查询就是**从知识图谱中找出"感冒"的所有症状名称**。
+2025-12-05 17:07:20,973 - services.graph_service - INFO - 查询验证通过
+2025-12-05 17:07:20,989 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE d.name = '感冒' 
+RETURN s.name
+2025-12-05 17:07:20,990 - services.graph_service - INFO - 查询验证通过
+2025-12-05 17:07:20,995 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE d.name = '感冒' 
+RETURN s.name
+2025-12-05 17:07:20,996 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[:has_symptom]->(s:Symptom) 
+WHERE d.name = '感冒' 
+RETURN s.name
+2025-12-05 17:07:21,044 - services.graph_service - INFO - 查询执行成功，耗时: 0.048秒，返回 9 条记录
+2025-12-05 17:07:21,044 - services.graph_service - INFO - 查询执行完成，返回 9 条记录
+2025-12-05 17:08:09,001 - services.graph_service - INFO - 收到生成查询请求: 感冒，这个治疗费用大概是多少
+2025-12-05 17:08:09,099 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 17:08:11,325 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease) 
+WHERE d.name = '感冒' 
+RETURN d.name, d.cost_money
+2025-12-05 17:08:11,358 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 17:08:22,214 - services.graph_service - INFO - 查询解释: 这个Cypher查询是用来从Neo4j图数据库中查找特定疾病信息的。让我详细解释一下：
+
+**查询目的：**
+查找名为"感冒"的疾病，并返回它的名称和治疗费用。
+
+**查询分解：**
+
+1. **`MATCH (d:Disease)`**
+   - 匹配所有标签为"Disease"的节点
+   - 给这些节点起一个别名"d"（方便后续引用）
+
+2. **`WHERE d.name = '感冒'`**
+   - 筛选条件：只选择那些name属性等于"感冒"的疾病节点
+   - 这是一个过滤条件，从所有疾病中找出特定的感冒疾病
+
+3. **`RETURN d.name, d.cost_money`**
+   - 返回结果：只返回疾病的名称和治疗费用这两个属性
+   - 不会返回节点的所有属性，只返回指定的这两个
+
+**简单来说：**
+这个查询就像是在问数据库："请告诉我感冒这个病的名称和治疗费用是多少？"
+
+**预期结果：**
+查询会返回一个表格，包含两列：
+- d.name：显示"感冒"
+- d.cost_money：显示感冒的治疗费用（具体数值取决于数据库中的数据）
+
+如果数据库中没有名为"感冒"的疾病，查询将返回空结果。
+2025-12-05 17:08:22,215 - services.graph_service - INFO - 查询验证通过
+2025-12-05 17:08:22,228 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease) 
+WHERE d.name = '感冒' 
+RETURN d.name, d.cost_money
+2025-12-05 17:08:22,228 - services.graph_service - INFO - 查询验证通过
+2025-12-05 17:08:22,235 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease) 
+WHERE d.name = '感冒' 
+RETURN d.name, d.cost_money
+2025-12-05 17:08:22,235 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease) 
+WHERE d.name = '感冒' 
+RETURN d.name, d.cost_money
+2025-12-05 17:08:22,287 - services.graph_service - INFO - 查询执行成功，耗时: 0.052秒，返回 1 条记录
+2025-12-05 17:08:22,287 - services.graph_service - INFO - 查询执行完成，返回 1 条记录
+2025-12-05 17:09:07,573 - services.graph_service - INFO - 收到生成查询请求: 肩袖损伤肩痛可能是得了什么病
+2025-12-05 17:09:07,691 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 17:09:10,296 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (s:Symptom)<-[:has_symptom]-(d:Disease) 
+WHERE s.name CONTAINS '肩痛' 
+RETURN d.name AS disease_name, d.desc AS description
+2025-12-05 17:09:10,339 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 17:09:22,150 - services.graph_service - INFO - 查询解释: 这个Cypher查询是用来在医疗知识图谱中查找与"肩痛"相关的疾病信息。让我一步步解释：
+
+## 查询目的
+查找所有包含"肩痛"症状的疾病，并返回这些疾病的名称和描述。
+
+## 查询分解
+
+1. **`MATCH (s:Symptom)<-[:has_symptom]-(d:Disease)`**
+   - 匹配模式：查找所有"疾病"节点（d）通过"has_symptom"关系指向"症状"节点（s）
+   - 箭头方向 `<-` 表示关系从疾病指向症状（疾病有症状）
+
+2. **`WHERE s.name CONTAINS '肩痛'`**
+   - 筛选条件：只选择症状名称中包含"肩痛"的症状
+   - 比如"左肩痛"、"右肩痛"、"肩痛放射"等都会被匹配
+
+3. **`RETURN d.name AS disease_name, d.desc AS description`**
+   - 返回结果：返回匹配到的疾病名称和疾病描述
+   - 使用别名让结果更易读
+
+## 实际效果
+这个查询会找出所有可能导致肩痛的疾病，比如：
+- 肩周炎
+- 颈椎病
+- 肩袖损伤
+- 心脏病（有些心脏病会放射到肩部）
+
+## 简单类比
+就像在问："哪些疾病会有肩痛这个症状？请告诉我这些疾病的名字和详细描述。"
+
+这样的查询在医疗诊断辅助、症状自查等场景中很有用。
+2025-12-05 17:09:22,151 - services.graph_service - INFO - 查询验证通过
+2025-12-05 17:09:22,160 - services.graph_service - INFO - 收到验证查询请求: MATCH (s:Symptom)<-[:has_symptom]-(d:Disease) 
+WHERE s.name CONTAINS '肩痛' 
+RETURN d.name AS disease_name, d.desc AS description
+2025-12-05 17:09:22,160 - services.graph_service - INFO - 查询验证通过
+2025-12-05 17:09:22,164 - services.graph_service - INFO - 收到执行查询请求: MATCH (s:Symptom)<-[:has_symptom]-(d:Disease) 
+WHERE s.name CONTAINS '肩痛' 
+RETURN d.name AS disease_name, d.desc AS description
+2025-12-05 17:09:22,164 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (s:Symptom)<-[:has_symptom]-(d:Disease) 
+WHERE s.name CONTAINS '肩痛' 
+RETURN d.name AS disease_name, d.desc AS description
+2025-12-05 17:09:22,219 - services.graph_service - INFO - 查询执行成功，耗时: 0.055秒，返回 1 条记录
+2025-12-05 17:09:22,220 - services.graph_service - INFO - 查询执行完成，返回 1 条记录
+2025-12-05 17:09:35,562 - services.graph_service - INFO - 收到生成查询请求: 治疗费用大概是多少
+2025-12-05 17:09:35,653 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 17:09:41,254 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease) 
+WHERE d.cost_money IS NOT NULL AND d.cost_money <> '' 
+RETURN d.name AS disease_name, d.cost_money AS treatment_cost 
+LIMIT 20
+2025-12-05 17:09:41,291 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 17:09:53,018 - services.graph_service - INFO - 查询解释: 这个Cypher查询的作用是从图数据库中查找疾病信息，具体解释如下：
+
+## 查询目的
+查找有治疗费用信息的疾病，并返回疾病名称和治疗费用。
+
+## 查询分解
+
+1. **`MATCH (d:Disease)`**
+   - 匹配所有标签为"Disease"（疾病）的节点
+   - 给这些节点起一个别名 `d`，方便后续引用
+
+2. **`WHERE d.cost_money IS NOT NULL AND d.cost_money <> ''`**
+   - 筛选条件：
+     - `d.cost_money IS NOT NULL`：治疗费用字段不为空
+     - `d.cost_money <> ''`：治疗费用字段不是空字符串
+   - 这两个条件确保只返回有实际治疗费用数据的疾病
+
+3. **`RETURN d.name AS disease_name, d.cost_money AS treatment_cost`**
+   - 返回结果包含两列：
+     - 疾病名称（重命名为 `disease_name`）
+     - 治疗费用（重命名为 `treatment_cost`）
+
+4. **`LIMIT 20`**
+   - 限制返回结果最多20条记录
+   - 防止数据量过大，提高查询效率
+
+## 简单来说
+这个查询的意思是：
+**"给我找20个有治疗费用信息的疾病，告诉我它们的名字和具体费用是多少"**
+
+## 实际应用场景
+- 医疗数据分析
+- 保险费用评估
+- 医疗资源规划
+- 疾病治疗成本研究
+2025-12-05 17:09:53,021 - services.graph_service - INFO - 查询验证通过
+2025-12-05 17:09:53,031 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease) 
+WHERE d.cost_money IS NOT NULL AND d.cost_money <> '' 
+RETURN d.name AS disease_name, d.cost_money AS treatment_cost 
+LIMIT 20
+2025-12-05 17:09:53,031 - services.graph_service - INFO - 查询验证通过
+2025-12-05 17:09:53,037 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease) 
+WHERE d.cost_money IS NOT NULL AND d.cost_money <> '' 
+RETURN d.name AS disease_name, d.cost_money AS treatment_cost 
+LIMIT 20
+2025-12-05 17:09:53,038 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease) 
+WHERE d.cost_money IS NOT NULL AND d.cost_money <> '' 
+RETURN d.name AS disease_name, d.cost_money AS treatment_cost 
+LIMIT 20
+2025-12-05 17:09:53,174 - services.graph_service - INFO - 查询执行成功，耗时: 0.136秒，返回 20 条记录
+2025-12-05 17:09:53,174 - services.graph_service - INFO - 查询执行完成，返回 20 条记录
+2025-12-05 17:12:34,552 - services.graph_service - INFO - 收到生成查询请求: 肩痛可能是得了什么病
+2025-12-05 17:12:34,771 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 17:12:37,569 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (s:Symptom)<-[:has_symptom]-(d:Disease) 
+WHERE s.name CONTAINS '肩痛' 
+RETURN d.name AS disease_name, d.desc AS description
+2025-12-05 17:12:37,632 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 17:12:52,908 - services.graph_service - INFO - 查询解释: 这个Cypher查询是用来在医疗知识图谱中查找与"肩痛"相关的疾病信息。让我一步步解释：
+
+## 查询目的
+查找所有包含"肩痛"症状的疾病，并返回这些疾病的名称和描述。
+
+## 查询分解
+
+1. **`MATCH (s:Symptom)<-[:has_symptom]-(d:Disease)`**
+   - 匹配图数据库中的节点和关系
+   - `(s:Symptom)`：查找标签为"Symptom"的节点（症状节点）
+   - `(d:Disease)`：查找标签为"Disease"的节点（疾病节点）
+   - `<-[:has_symptom]-`：查找从疾病指向症状的"has_symptom"关系
+   - 整体意思是：找到所有有症状的疾病，疾病通过"has_symptom"关系与症状相连
+
+2. **`WHERE s.name CONTAINS '肩痛'`**
+   - 筛选条件：只选择症状名称中包含"肩痛"的症状
+   - 比如"左肩痛"、"右肩痛"、"肩痛放射"等都会被匹配
+
+3. **`RETURN d.name AS disease_name, d.desc AS description`**
+   - 返回结果：疾病的名称和描述
+   - 使用别名让结果更易读
+
+## 实际效果
+这个查询会：
+- 找出所有症状名称包含"肩痛"的症状节点
+- 沿着"has_symptom"关系找到相关的疾病节点
+- 返回这些疾病的名称和详细描述
+
+## 示例结果可能包括：
+```
+disease_name        | description
+--------------------|-------------------
+肩周炎              | 肩关节周围炎症，常见于50岁左右...
+肩袖损伤            | 肩部肌腱损伤，常见于运动员...
+颈椎病              | 颈椎退行性病变，可能引起肩部放射痛...
+```
+
+简单说：**这个查询帮你找出所有可能导致肩痛的疾病及其相关信息**。
+2025-12-05 17:12:52,910 - services.graph_service - INFO - 查询验证通过
+2025-12-05 17:12:52,921 - services.graph_service - INFO - 收到验证查询请求: MATCH (s:Symptom)<-[:has_symptom]-(d:Disease) 
+WHERE s.name CONTAINS '肩痛' 
+RETURN d.name AS disease_name, d.desc AS description
+2025-12-05 17:12:52,922 - services.graph_service - INFO - 查询验证通过
+2025-12-05 17:12:52,927 - services.graph_service - INFO - 收到执行查询请求: MATCH (s:Symptom)<-[:has_symptom]-(d:Disease) 
+WHERE s.name CONTAINS '肩痛' 
+RETURN d.name AS disease_name, d.desc AS description
+2025-12-05 17:12:52,927 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (s:Symptom)<-[:has_symptom]-(d:Disease) 
+WHERE s.name CONTAINS '肩痛' 
+RETURN d.name AS disease_name, d.desc AS description
+2025-12-05 17:12:52,972 - services.graph_service - INFO - 查询执行成功，耗时: 0.044秒，返回 1 条记录
+2025-12-05 17:12:52,973 - services.graph_service - INFO - 查询执行完成，返回 1 条记录
+2025-12-05 17:13:22,037 - services.graph_service - INFO - 收到生成查询请求: 横膈下结肠嵌入综合征，这个的治疗费用大概是多少
+2025-12-05 17:13:22,162 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 17:13:24,446 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease) 
+WHERE d.name = '横膈下结肠嵌入综合征' 
+RETURN d.name, d.cost_money
+2025-12-05 17:13:24,492 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 17:13:34,163 - services.graph_service - INFO - 查询解释: 这个Cypher查询是用来从Neo4j图数据库中查找特定疾病信息的。让我一步步解释：
+
+**查询目的：**
+查找名为"横膈下结肠嵌入综合征"的疾病，并返回这个疾病的名称和治疗费用信息。
+
+**查询分解：**
+
+1. **`MATCH (d:Disease)`**
+   - 匹配所有标签为"Disease"（疾病）的节点
+   - 给这些节点起一个别名"d"（方便后续引用）
+
+2. **`WHERE d.name = '横膈下结肠嵌入综合征'`**
+   - 筛选条件：只选择名称（name属性）等于"横膈下结肠嵌入综合征"的疾病节点
+
+3. **`RETURN d.name, d.cost_money`**
+   - 返回结果：显示这个疾病的名称和治疗费用（cost_money属性）
+
+**简单来说：**
+这个查询就像是在问数据库："请告诉我'横膈下结肠嵌入综合征'这个病的名称和治疗费用是多少？"
+
+**预期结果：**
+查询会返回一个表格，包含两列：
+- d.name：疾病名称（应该是"横膈下结肠嵌入综合征"）
+- d.cost_money：该疾病的治疗费用
+
+如果数据库中没有这个疾病，查询将返回空结果。
+2025-12-05 17:13:34,164 - services.graph_service - INFO - 查询验证通过
+2025-12-05 17:13:34,176 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease) 
+WHERE d.name = '横膈下结肠嵌入综合征' 
+RETURN d.name, d.cost_money
+2025-12-05 17:13:34,176 - services.graph_service - INFO - 查询验证通过
+2025-12-05 17:13:34,181 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease) 
+WHERE d.name = '横膈下结肠嵌入综合征' 
+RETURN d.name, d.cost_money
+2025-12-05 17:13:34,182 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease) 
+WHERE d.name = '横膈下结肠嵌入综合征' 
+RETURN d.name, d.cost_money
+2025-12-05 17:13:34,224 - services.graph_service - INFO - 查询执行成功，耗时: 0.042秒，返回 1 条记录
+2025-12-05 17:13:34,225 - services.graph_service - INFO - 查询执行完成，返回 1 条记录
+2025-12-05 17:20:04,850 - services.graph_service - INFO - 收到生成查询请求: 横膈下结肠嵌入综合征有什么吃的可以缓解一下吗
+2025-12-05 17:20:04,993 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 17:20:07,642 - services.graph_service - INFO - 生成的 Cypher 查询: MATCH (d:Disease)-[:recommand_eat]-(f:Food) 
+WHERE d.name='横膈下结肠嵌入综合征' 
+RETURN f.name
+2025-12-05 17:20:07,701 - httpx - INFO - HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-05 17:20:17,874 - services.graph_service - INFO - 查询解释: 这个Cypher查询的作用是：**查找与特定疾病相关的推荐食物**。
+
+让我详细解释一下：
+
+## 查询结构解析：
+
+1. **`MATCH (d:Disease)-[:recommand_eat]-(f:Food)`**
+   - 在图中查找所有疾病节点（d）和食物节点（f）
+   - 这些节点之间通过"recommand_eat"关系连接
+   - 意思是：疾病推荐吃某种食物
+
+2. **`WHERE d.name='横膈下结肠嵌入综合征'`**
+   - 筛选条件：只找疾病名称为"横膈下结肠嵌入综合征"的节点
+
+3. **`RETURN f.name`**
+   - 返回结果：只返回食物的名称
+
+## 通俗理解：
+这个查询相当于问："对于'横膈下结肠嵌入综合征'这种病，医生推荐吃哪些食物？"
+
+## 实际应用场景：
+- 医疗健康应用中，为患者提供饮食建议
+- 营养管理系统，根据疾病推荐合适的食物
+- 医疗知识图谱查询
+
+## 返回结果示例：
+可能会返回类似这样的食物列表：
+- "小米粥"
+- "蒸蛋"
+- "香蕉"
+- "白萝卜"
+
+这个查询简单但实用，直接从知识图谱中提取特定疾病的饮食建议。
+2025-12-05 17:20:17,875 - services.graph_service - INFO - 查询验证通过
+2025-12-05 17:20:17,889 - services.graph_service - INFO - 收到验证查询请求: MATCH (d:Disease)-[:recommand_eat]-(f:Food) 
+WHERE d.name='横膈下结肠嵌入综合征' 
+RETURN f.name
+2025-12-05 17:20:17,889 - services.graph_service - INFO - 查询验证通过
+2025-12-05 17:20:17,895 - services.graph_service - INFO - 收到执行查询请求: MATCH (d:Disease)-[:recommand_eat]-(f:Food) 
+WHERE d.name='横膈下结肠嵌入综合征' 
+RETURN f.name
+2025-12-05 17:20:17,895 - services.graph_service - INFO - 执行 Cypher 查询: MATCH (d:Disease)-[:recommand_eat]-(f:Food) 
+WHERE d.name='横膈下结肠嵌入综合征' 
+RETURN f.name
+2025-12-05 17:20:17,984 - services.graph_service - INFO - 查询执行成功，耗时: 0.088秒，返回 6 条记录
+2025-12-05 17:20:17,984 - services.graph_service - INFO - 查询执行完成，返回 6 条记录
+2025-12-05 17:38:13,740 - services.graph_service - INFO - Neo4j 连接已关闭

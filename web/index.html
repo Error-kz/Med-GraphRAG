@@ -887,7 +887,11 @@
             sessionsToRender.forEach(session => {
                 const historyItem = document.createElement('div');
                 historyItem.className = 'history-item';
-                if (session.session_id === currentSessionId) {
+                // 确保使用严格相等比较，并且两个值都不为 null/undefined
+                // 转换为字符串进行比较，确保类型一致
+                const sessionId = String(session.session_id || '');
+                const currentId = String(currentSessionId || '');
+                if (sessionId && currentId && sessionId === currentId) {
                     historyItem.classList.add('active');
                 }
                 
@@ -929,7 +933,13 @@
                     return;
                 }
                 
-                currentSessionId = sessionId;
+                // 确保 sessionId 是字符串类型，并设置为当前选中的会话ID
+                const sessionIdStr = String(sessionId || '');
+                currentSessionId = sessionIdStr; // 用于UI高亮显示
+                // 注意：加载历史对话时，不自动设置 activeSessionId
+                // 只有当用户在该历史对话中发送新消息时，才设置 activeSessionId
+                // 这样避免创建新会话后，选择历史对话会覆盖新的 session_id
+                
                 renderHistory();
                 
                 // 清空当前聊天
@@ -942,6 +952,16 @@
                     addQuestion(conv.question);
                     addAnswer(conv.answer, null, null);
                 });
+                
+                // 检查消息数量，如果达到10条，在输入框显示提示
+                const messageCount = data.count || data.conversations.length;
+                if (messageCount >= 10) {
+                    messageInput.placeholder = '该对话已达到10条消息上限，请创建新会话';
+                    messageInput.style.borderColor = 'var(--warning-color)';
+                } else {
+                    messageInput.placeholder = '例如：感冒了有什么症状？应该怎么治疗？';
+                    messageInput.style.borderColor = '';
+                }
                 
                 scrollToBottom();
             } catch (error) {
@@ -975,19 +995,26 @@
                 const data = await response.json();
                 
                 if (data.status === 200 && data.session_id) {
-                    activeSessionId = data.session_id;
-                    localStorage.setItem('currentSessionId', activeSessionId);
+                    // 确保使用新的 session_id，并立即更新
+                    const newSessionId = String(data.session_id);
+                    activeSessionId = newSessionId;
+                    localStorage.setItem('currentSessionId', newSessionId);
                     
                     // 清空当前聊天
                     chatContainer.innerHTML = '';
                     chatHistory = [];
-                    currentSessionId = null;
+                    currentSessionId = null; // 清除历史对话选中状态
                     emptyState.style.display = 'block';
+                    
+                    // 重置输入框样式和提示
+                    messageInput.placeholder = '例如：感冒了有什么症状？应该怎么治疗？';
+                    messageInput.style.borderColor = '';
                     
                     // 刷新历史列表
                     refreshHistory();
                     
-                    console.log('新会话创建成功:', activeSessionId);
+                    console.log('新会话创建成功:', newSessionId);
+                    console.log('当前 activeSessionId:', activeSessionId);
                 } else {
                     console.error('创建新会话失败:', data);
                 }
@@ -1367,6 +1394,37 @@
                 return;
             }
 
+            // 如果当前有选中的历史对话（currentSessionId 不为空），使用历史对话的 session_id
+            // 否则使用 activeSessionId（可能是新创建的会话）
+            if (currentSessionId) {
+                // 用户选择了历史对话，使用历史对话的 session_id
+                activeSessionId = String(currentSessionId);
+                localStorage.setItem('currentSessionId', activeSessionId);
+                
+                // 检查消息数量
+                try {
+                    const response = await fetch(API_URL + `api/sessions/${activeSessionId}`);
+                    const data = await response.json();
+                    
+                    if (data.status === 200) {
+                        const messageCount = data.count || (data.conversations ? data.conversations.length : 0);
+                        if (messageCount >= 10) {
+                            // 已达到10条，显示提示并阻止发送
+                            messageInput.value = '';
+                            messageInput.placeholder = '该对话已达到10条消息上限，请创建新会话';
+                            messageInput.style.borderColor = 'var(--warning-color)';
+                            alert('该对话已达到10条消息上限，请创建新会话后再继续提问');
+                            return;
+                        }
+                    }
+                } catch (error) {
+                    console.error('检查会话消息数量失败:', error);
+                }
+            } else {
+                // 没有选择历史对话，使用 activeSessionId（可能是新创建的会话）
+                // 如果 activeSessionId 为空，后端会生成新的
+            }
+
             // 禁用输入和按钮
             messageInput.disabled = true;
             sendBtn.disabled = true;
@@ -1536,8 +1594,12 @@
                     if (data.new_session_id) {
                         activeSessionId = data.new_session_id;
                         localStorage.setItem('currentSessionId', activeSessionId);
+                        currentSessionId = null; // 清除当前选中的历史对话
                         // 刷新历史列表
                         refreshHistory();
+                        // 重置输入框样式和提示
+                        messageInput.placeholder = '例如：感冒了有什么症状？应该怎么治疗？';
+                        messageInput.style.borderColor = '';
                         // 提示用户
                         console.log('对话达到10条，已自动创建新会话');
                     }
@@ -1598,9 +1660,18 @@
             
             try {
                 // 获取或使用当前会话ID
+                // 如果 activeSessionId 为空，从 localStorage 获取
                 if (!activeSessionId) {
                     activeSessionId = localStorage.getItem('currentSessionId');
                 }
+                
+                // 确保 session_id 是字符串类型
+                const sessionIdToUse = activeSessionId ? String(activeSessionId) : null;
+                
+                // 调试日志：记录使用的 session_id
+                console.log('发送消息，使用的 session_id:', sessionIdToUse);
+                console.log('当前 activeSessionId:', activeSessionId);
+                console.log('当前 currentSessionId:', currentSessionId);
                 
                 // 发送流式请求
                 const response = await fetch(API_URL, {
@@ -1611,7 +1682,7 @@
                     body: JSON.stringify({ 
                         question: message, 
                         stream: true,
-                        session_id: activeSessionId 
+                        session_id: sessionIdToUse  // 使用确定的 session_id，如果为 null 后端会生成新的
                     }),
                 });
 
@@ -1692,10 +1763,11 @@
             if (confirm('确定要清空所有对话吗？')) {
                 chatContainer.innerHTML = '';
                 chatHistory = [];
+                // 清空当前选中的会话ID，但不清空 activeSessionId（因为可能还要继续使用）
                 currentSessionId = null;
                 emptyState.style.display = 'block';
                 
-                // 更新历史列表的选中状态
+                // 更新历史列表的选中状态（移除所有高亮）
                 renderHistory();
             }
         }

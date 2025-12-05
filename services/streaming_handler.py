@@ -8,7 +8,7 @@ import datetime
 import requests
 from typing import AsyncGenerator
 
-from core.cache.redis_client import get_redis_client, save_conversation_history, save_session_to_history
+from core.cache.redis_client import save_conversation_history
 
 
 async def send_event(event_type: str, data: dict) -> str:

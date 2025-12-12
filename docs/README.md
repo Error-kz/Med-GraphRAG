@@ -150,8 +150,7 @@ MedGraphRAG 是一个结合 **知识图谱 (Neo4j)**、**向量检索 (Milvus)**
 ### 完整工作流程
 
 下图展示了 MedGraphRAG 系统的完整工作流程，从数据准备、知识库构建到用户查询、并行检索和答案生成的五个核心步骤：
-
-![MedGraphRAG 系统流程图](./images/流程图.png)
+![MedGraphRAG 系统流程图](./images/ima-流程图.png)
 
 ### 详细技术流程
 

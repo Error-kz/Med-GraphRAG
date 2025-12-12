@@ -304,10 +304,10 @@ async def lifespan(app: FastAPI):
 # 创建 FastAPI 应用
 app = FastAPI(title='NL2Cypher API', lifespan=lifespan)
 
-# 初始化DeepSeek客户端
+# 初始化 OpenRouter 客户端
 client = OpenAI(
-    api_key=settings.DEEPSEEK_API_KEY,
-    base_url='https://api.deepseek.com/v1'
+    api_key=settings.OPENROUTER_API_KEY,
+    base_url='https://openrouter.ai/api/v1'
 )
 
 # 添加CORS中间件
@@ -321,7 +321,7 @@ app.add_middleware(
 
 
 def generate_cypher_query(natural_language: str, query_type: str = None) -> str:
-    """使用 DeepSeek 生成 Cypher 查询"""
+    """使用 OpenRouter 生成 Cypher 查询"""
     system_prompt = create_system_prompt(str(EXAMPLE_SCHEMA.model_dump()))
     user_prompt = natural_language
     if query_type:
@@ -329,7 +329,7 @@ def generate_cypher_query(natural_language: str, query_type: str = None) -> str:
     
     try:
         response = client.chat.completions.create(
-            model="deepseek-chat",
+            model=settings.OPENROUTER_LLM_MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
@@ -341,14 +341,14 @@ def generate_cypher_query(natural_language: str, query_type: str = None) -> str:
         raw_query = response.choices[0].message.content.strip()
         return clean_cypher_query(raw_query)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"DeepSeek API错误: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"OpenRouter API错误: {str(e)}")
 
 
 def explain_cypher_query(cypher_query: str) -> str:
     """解释Cypher查询"""
     try:
         response = client.chat.completions.create(
-            model="deepseek-chat",
+            model=settings.OPENROUTER_LLM_MODEL,
             messages=[
                 {"role": "system", "content": "你是一个Neo4j专家, 请用简单明了的语言解释Cypher查询."},
                 {"role": "user", "content": f"请解释以下Cypher查询: {cypher_query}"}
@@ -467,7 +467,7 @@ async def validate_cypher(request: ValidationRequest):
     if errors:
         try:
             response = client.chat.completions.create(
-                model="deepseek-chat",
+                model=settings.OPENROUTER_LLM_MODEL,
                 messages=[
                     {"role": "system", "content": "你是一个Neo4j专家, 请提供Cypher查询的改进建议."},
                     {"role": "user", "content": create_validation_prompt(request.cypher_query)}

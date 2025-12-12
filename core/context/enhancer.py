@@ -5,7 +5,7 @@
 import re
 import json
 from typing import List, Dict, Optional, Tuple
-from core.models.llm import create_deepseek_client
+from core.models.llm import create_openrouter_client
 
 
 def has_reference_pronouns(query: str) -> bool:
@@ -86,7 +86,7 @@ def extract_entities_from_history(history: List[Dict[str, str]], max_history: in
     
     try:
         # 使用大模型提取主题实体
-        client = create_deepseek_client()
+        client = create_openrouter_client()
         
         # 构建对话历史文本
         history_text = ""
@@ -123,8 +123,9 @@ def extract_entities_from_history(history: List[Dict[str, str]], max_history: in
 请提取对话的核心主题，并以JSON格式返回。"""
         
         # 调用大模型
+        from config.settings import settings
         response = client.chat.completions.create(
-            model="deepseek-chat",
+            model=settings.OPENROUTER_LLM_MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
@@ -230,7 +231,7 @@ def enhance_query_with_context(
     
     try:
         # 使用大模型进行智能增强
-        client = create_deepseek_client()
+        client = create_openrouter_client()
         
         # 只使用最近的历史记录
         recent_history = history[-max_history:] if len(history) > max_history else history
@@ -283,8 +284,9 @@ def enhance_query_with_context(
 请以JSON格式返回结果。"""
         
         # 调用大模型
+        from config.settings import settings
         response = client.chat.completions.create(
-            model="deepseek-chat",
+            model=settings.OPENROUTER_LLM_MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}

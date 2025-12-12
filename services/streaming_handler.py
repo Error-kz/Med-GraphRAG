@@ -43,7 +43,7 @@ async def chatbot_stream(
         query: 用户问题
         session_id: 会话ID
         milvus_vectorstore: Milvus向量存储实例
-        client_llm: DeepSeek LLM客户端
+        client_llm: OpenRouter LLM客户端
         graph_api_url: 知识图谱服务主地址
         graph_api_url_backup: 知识图谱服务备用地址
         format_docs_func: 格式化文档的函数
@@ -426,10 +426,11 @@ async def chatbot_stream(
         </question>
     """
     
-    # 使用 DeepSeek 模型流式生成回复
+    # 使用 OpenRouter 模型流式生成回复
     try:
+        from config.settings import settings
         response = client_llm.chat.completions.create(
-            model="deepseek-chat",
+            model=settings.OPENROUTER_LLM_MODEL,
             messages=[
                 {
                     "role": "system",
